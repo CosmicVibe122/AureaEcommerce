@@ -15,13 +15,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.R
+import com.aureadigitallabs.aurea.ui.common.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(navController: NavController) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Quiénes Somos") })
+
+            AppTopBar(
+                title = "Quienes Sómos",
+                navController = navController,
+                canNavigateBack = true
+            )
         }
     ) { padding ->
         Column(

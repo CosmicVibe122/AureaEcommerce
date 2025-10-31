@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.aureadigitallabs.aurea.ui.common.AppTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,7 +24,11 @@ fun CartScreen(navController: NavController) {
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Carrito de Compras") })
+            AppTopBar(
+                title = "Carrito de Compras",
+                navController = navController,
+                canNavigateBack = true
+            )
         }
     ) { padding ->
         Column(

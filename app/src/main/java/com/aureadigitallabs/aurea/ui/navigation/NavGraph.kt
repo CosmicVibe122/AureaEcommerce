@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.NavBackStackEntry
 import com.aureadigitallabs.aurea.ui.screens.login.LoginScreen
 import com.aureadigitallabs.aurea.ui.screens.home.HomeScreen
 import com.aureadigitallabs.aurea.ui.screens.catalog.CatalogScreen

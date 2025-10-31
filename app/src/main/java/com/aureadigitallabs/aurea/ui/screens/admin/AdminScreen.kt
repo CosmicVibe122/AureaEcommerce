@@ -11,6 +11,7 @@ import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.data.ProductRepository
 import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
+import com.aureadigitallabs.aurea.ui.common.AppTopBar
 
 @Composable
 fun ProductForm(onSubmit: (Product, Boolean) -> Unit) {
@@ -84,7 +85,14 @@ fun AdminScreen(navController: NavController) {
     var showForm by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Panel de Administración") }) }
+        topBar = {
+
+            AppTopBar(
+                title = "Panel de Administracion",
+                navController = navController,
+                canNavigateBack = true // Queremos la flecha para volver
+            )
+        }
     ) { padding ->
         Column(
             modifier = Modifier
