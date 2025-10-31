@@ -2,10 +2,8 @@ package com.aureadigitallabs.aurea.ui.screens.catalog
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -14,16 +12,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.data.ProductRepository
-import com.aureadigitallabs.aurea.model.Product
-import com.aureadigitallabs.aurea.ui.screens.cart.CartManager
 import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
-import kotlin.text.toIntOrNull;
-
+import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDetailScreen(navController: NavController, productId: Int) {
+fun ProductDetailScreen(
+    navController: NavController,
+    productId: Int,
+    cartViewModel: CartViewModel // 1. Acepta el ViewModel
+) {
     val product = ProductRepository.getProductById(productId)
 
     Scaffold(
@@ -34,8 +33,7 @@ fun ProductDetailScreen(navController: NavController, productId: Int) {
                 canNavigateBack = true
             )
         }
-    ){ paddingValues ->
-        // Si el producto no se encuentra, muestra un mensaje de error.
+    ) { paddingValues ->
         if (product == null) {
             Box(
                 modifier = Modifier
@@ -47,7 +45,6 @@ fun ProductDetailScreen(navController: NavController, productId: Int) {
             }
             return@Scaffold
         }
-
 
         Column(
             modifier = Modifier
@@ -68,7 +65,6 @@ fun ProductDetailScreen(navController: NavController, productId: Int) {
                 )
             }
 
-
             Text(product.name, style = MaterialTheme.typography.headlineLarge)
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -81,46 +77,17 @@ fun ProductDetailScreen(navController: NavController, productId: Int) {
 
             Text(product.description, style = MaterialTheme.typography.bodyLarge)
 
-            Spacer(modifier = Modifier.weight(1f)) // Empuja el botón hacia abajo
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Botón para añadir al carrito (si lo tienes)
             Button(
-                onClick = { /* Lógica para añadir al carrito */ },
+                onClick = {
+                    // 2. Usa el ViewModel que se pasó como parámetro
+                    cartViewModel.addToCart(product)
+                    navController.navigate("cart")
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Añadir al Carrito")
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ProductDetailContent(product: Product, navController: NavController) {
-    val cartManager = CartManager
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(product.name) })
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text("Precio: \$${product.price}", style = MaterialTheme.typography.titleLarge)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(product.description, style = MaterialTheme.typography.bodyMedium)
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(onClick = {
-                cartManager.addToCart(product)
-                navController.popBackStack()
-            }) {
-                Text("Agregar al carrito")
+                Text("Añadir al carrito")
             }
         }
     }

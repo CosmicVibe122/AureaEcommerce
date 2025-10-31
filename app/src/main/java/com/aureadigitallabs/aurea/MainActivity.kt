@@ -6,9 +6,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
-import com.aurea.app.ui.theme.AureaTheme
+import com.aureadigitallabs.aurea.ui.theme.AureaTheme
 import com.aureadigitallabs.aurea.ui.navigation.NavGraph
+// Ruta correcta para tu CartViewModel
+import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 
 class MainActivity : ComponentActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,7 +21,10 @@ class MainActivity : ComponentActivity(){
             AureaTheme{
                 Surface(color = MaterialTheme.colorScheme.background){
                     val navController = rememberNavController()
-                    NavGraph(navController)
+                    // Se crea la instancia del ViewModel que se compartirá
+                    val cartViewModel: CartViewModel = viewModel()
+                    // Se pasa el ViewModel al NavGraph
+                    NavGraph(navController, cartViewModel)
                 }
             }
         }

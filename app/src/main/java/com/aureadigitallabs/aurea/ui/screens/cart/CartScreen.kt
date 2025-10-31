@@ -10,17 +10,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
+import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(navController: NavController) {
-    val cartItems = remember { mutableStateListOf<Pair<com.aureadigitallabs.aurea.model.Product, Int>>() }
-
-    // Sincroniza los elementos con el CartManager
-    LaunchedEffect(Unit) {
-        cartItems.clear()
-        cartItems.addAll(CartManager.cartItems)
-    }
+// 2. Modifica la firma para aceptar el CartViewModel
+fun CartScreen(
+    navController: NavController,
+    cartViewModel: CartViewModel
+) {
+    // 3. Obtén los items directamente del ViewModel. Ya no se necesita `remember` o `LaunchedEffect`.
+    val cartItems = cartViewModel.cartItems
 
     Scaffold(
         topBar = {
@@ -49,21 +49,17 @@ fun CartScreen(navController: NavController) {
                     modifier = Modifier.weight(1f)
                 ) {
                     items(cartItems) { (product, quantity) ->
+                        // 4. Llama a los métodos del ViewModel en el callback
                         CartItemRow(product, quantity) { newQty ->
-                            if (newQty > 0) {
-                                CartManager.updateQuantity(product.id, newQty)
-                            } else {
-                                CartManager.removeFromCart(product.id)
-                            }
-                            cartItems.clear()
-                            cartItems.addAll(CartManager.cartItems)
+                            cartViewModel.updateQuantity(product.id, newQty)
                         }
                     }
                 }
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
+                // 5. Calcula el total usando el ViewModel
                 Text(
-                    "Total: \$${CartManager.getTotal()}",
+                    "Total: \$${cartViewModel.getTotal()}",
                     style = MaterialTheme.typography.titleLarge
                 )
 
@@ -74,13 +70,13 @@ fun CartScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Button(onClick = {
-                        CartManager.clearCart()
-                        cartItems.clear()
+                        // 6. Llama al método para limpiar el carrito del ViewModel
+                        cartViewModel.clearCart()
                     }) {
                         Text("Vaciar carrito")
                     }
 
-                    Button(onClick = { navController.popBackStack() }) {
+                    Button(onClick = { navController.navigate("catalog") }) {
                         Text("Seguir comprando")
                     }
                 }

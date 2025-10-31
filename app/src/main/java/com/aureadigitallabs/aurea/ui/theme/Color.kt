@@ -1,4 +1,4 @@
-package com.aurea.app.ui.theme
+package com.aureadigitallabs.aurea.ui.theme
 
 
 

@@ -1,10 +1,9 @@
-package com.aurea.app.ui.theme
-
-
+package com.aureadigitallabs.aurea.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import com.aureadigitallabs.aurea.ui.theme.Typography
 
 private val DarkColorScheme = darkColorScheme(
     primary = AureaGold,
