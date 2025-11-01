@@ -1,166 +1,109 @@
 package com.aureadigitallabs.aurea.ui.screens.admin
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.aureadigitallabs.aurea.data.ProductRepository
-import com.aureadigitallabs.aurea.model.Category
+import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
+import com.aureadigitallabs.aurea.viewmodel.AdminViewModel
+import com.aureadigitallabs.aurea.viewmodel.AdminViewModelFactory
 
 @Composable
-fun ProductForm(onSubmit: (Product, Boolean) -> Unit) {
-    var id by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(Category.SKATE) }
-
-    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = id,
-            onValueChange = { id = it },
-            label = { Text("ID") }
-        )
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Nombre") }
-        )
-        OutlinedTextField(
-            value = price,
-            onValueChange = { price = it },
-            label = { Text("Precio") }
-        )
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Descripción") }
-        )
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Category.values().forEach { cat ->
-                FilterChip(
-                    selected = category == cat,
-                    onClick = { category = cat },
-                    label = { Text(cat.name) }
-                )
+fun AdminProductRow(
+    product: Product,
+    onEdit: (Product) -> Unit,
+    onDelete: (Product) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = product.imageRes),
+                contentDescription = product.name,
+                modifier = Modifier
+                    .size(60.dp)
+                    .padding(end = 16.dp),
+                contentScale = ContentScale.Crop
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(product.name, style = MaterialTheme.typography.titleMedium)
+                Text("ID: ${product.id} - $${product.price}", style = MaterialTheme.typography.bodySmall)
             }
-        }
-
-        Button(onClick = {
-            val idInt = id.toIntOrNull()
-            val priceDouble = price.toDoubleOrNull()
-            when {
-                idInt == null -> println("ID inválido")
-                name.isBlank() -> println("Nombre vacío")
-                description.isBlank() -> println("Descripción vacía")
-                priceDouble == null || priceDouble <= 0 -> println("Precio inválido")
-                else -> {
-                    onSubmit(Product(idInt, name, priceDouble, description, category), true)
-                    // Limpiar formulario
-                    id = ""; name = ""; price = ""; description = ""
-                }
+            IconButton(onClick = { onEdit(product) }) {
+                Icon(Icons.Default.Edit, contentDescription = "Editar Producto")
             }
-        }) {
-            Text("Guardar Producto")
+            IconButton(onClick = { onDelete(product) }) {
+                Icon(Icons.Default.Delete, contentDescription = "Eliminar Producto", tint = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(navController: NavController) {
-    val products = remember { mutableStateListOf<Product>() }
-    LaunchedEffect(Unit) {
-        products.clear()
-        products.addAll(ProductRepository.getAllProducts())
-    }
-
-    var showForm by remember { mutableStateOf(false) }
+    val application = LocalContext.current.applicationContext as AureaApplication
+    val viewModel: AdminViewModel = viewModel(
+        factory = AdminViewModelFactory(application.repository)
+    )
+    val products by viewModel.allProducts.collectAsState()
 
     Scaffold(
         topBar = {
-
-            AppTopBar(
-                title = "Panel de Administracion",
-                navController = navController,
-                canNavigateBack = true // Queremos la flecha para volver
-            )
+            AppTopBar(title = "Panel de Admin", navController = navController, canNavigateBack = true)
+        },
+        floatingActionButton = {
+            FloatingActionButton(onClick = { navController.navigate("add_edit_product") }) { // Navega sin ID
+                Icon(Icons.Default.Add, contentDescription = "Añadir Producto")
+            }
         }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Button(onClick = { showForm = !showForm }) {
-                Text(if (showForm) "Cerrar Formulario" else "Agregar Producto")
+    ) { paddingValues ->
+        if (products.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("No hay productos en la base de datos.")
             }
-
-            if (showForm) {
-                Spacer(modifier = Modifier.height(16.dp))
-                ProductForm(onSubmit = { product, isNew ->
-                    if (isNew) {
-                        if (products.any { it.id == product.id }) {
-                            // ID duplicado
-                            println("Error: ID ya existe")
-                        } else {
-                            products.add(product)
-                        }
-                    } else {
-                        // Editar
-                        val index = products.indexOfFirst { it.id == product.id }
-                        if (index != -1) products[index] = product
-                    }
-                })
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp)
+            ) {
                 items(products) { product ->
-                    AdminProductRow(product = product, onDelete = {
-                        products.remove(product)
-                    }, onEdit = {
-                        showForm = true
-                        // Aquí podrías cargar los datos en ProductForm para editar
-                    })
-                }
-            }
-        }
-    }
-}
-@Composable
-fun AdminProductRow(product: Product, onDelete: () -> Unit, onEdit: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column {
-                Text(product.name, style = MaterialTheme.typography.titleMedium)
-                Text("Precio: \$${product.price}")
-                Text("Categoría: ${product.category}")
-            }
-
-            Row {
-                Button(onClick = onEdit, modifier = Modifier.padding(end = 8.dp)) {
-                    Text("Editar")
-                }
-                Button(onClick = onDelete) {
-                    Text("Eliminar")
+                    AdminProductRow(
+                        product = product,
+                        onEdit = { selectedProduct ->
+                            navController.navigate("add_edit_product?productId=${selectedProduct.id}")
+                        },
+                        onDelete = { viewModel.deleteProduct(product) }
+                    )
                 }
             }
         }

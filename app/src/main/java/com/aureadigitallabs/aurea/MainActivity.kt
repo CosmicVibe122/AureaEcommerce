@@ -10,7 +10,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.aureadigitallabs.aurea.ui.theme.AureaTheme
 import com.aureadigitallabs.aurea.ui.navigation.NavGraph
-// Ruta correcta para tu CartViewModel
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 
 class MainActivity : ComponentActivity(){

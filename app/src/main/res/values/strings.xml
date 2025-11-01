@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">AureaEcommerce</string>
     <string name="product_image_description">Imagen de %1$s</string>
+    <string name="aurea_logo_description">Logo de Aurea</string>
 </resources>

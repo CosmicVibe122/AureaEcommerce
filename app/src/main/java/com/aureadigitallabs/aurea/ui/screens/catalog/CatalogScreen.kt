@@ -1,35 +1,30 @@
 package com.aureadigitallabs.aurea.ui.screens.catalog
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.aureadigitallabs.aurea.data.ProductRepository
-import com.aureadigitallabs.aurea.model.Category
-import com.aureadigitallabs.aurea.model.Product
-import com.aureadigitallabs.aurea.ui.screens.cart.CartManager
-
-
-
-// Asegúrate de que estas importaciones están presentes al principio de tu archivo
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import com.aureadigitallabs.aurea.R // Importante para R.drawable...
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.aureadigitallabs.aurea.AureaApplication
+import com.aureadigitallabs.aurea.R
+import com.aureadigitallabs.aurea.model.Category
+import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
-
-// ... otras importaciones ...
+import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
+import com.aureadigitallabs.aurea.viewmodel.CatalogViewModelFactory
 
 @Composable
 fun ProductCard(product: Product, onClick: () -> Unit) {
@@ -40,27 +35,20 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
             .clickable { onClick() },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-
         Row(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically // Centra los elementos en la fila
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
             if (product.imageRes != 0) {
                 Image(
-
                     painter = painterResource(id = product.imageRes),
-
                     contentDescription = stringResource(R.string.product_image_description, product.name),
                     modifier = Modifier
                         .size(80.dp)
                         .padding(end = 16.dp),
-
                     contentScale = ContentScale.Crop
                 )
             }
-
-
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, style = MaterialTheme.typography.titleMedium)
                 Text("Precio: $${product.price}")
@@ -75,16 +63,31 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CatalogScreen(navController: NavController) {
-    val categories = Category.values()
-    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+fun CatalogScreen(navController: NavController, categoryName: String?) {
+    val application = LocalContext.current.applicationContext as AureaApplication
+    val viewModel: CatalogViewModel = viewModel(
+        factory = CatalogViewModelFactory(application.repository)
+    )
+
+    val allProducts by viewModel.allProducts.collectAsState(initial = emptyList())
+    val categories = remember { Category.values().toList() }
+
+    val initialCategory = remember(categoryName) {
+        if (categoryName == null) {
+            null
+        } else {
+            categories.find { it.name.equals(categoryName, ignoreCase = true) }
+        }
+    }
+
+    var selectedCategory by remember { mutableStateOf<Category?>(initialCategory) }
+
     val products = if (selectedCategory == null)
-        ProductRepository.getAllProducts()
+        allProducts
     else
-        ProductRepository.getProductsByCategory(selectedCategory!!)
+        allProducts.filter { it.category == selectedCategory!! }
 
     Scaffold(
         topBar = {

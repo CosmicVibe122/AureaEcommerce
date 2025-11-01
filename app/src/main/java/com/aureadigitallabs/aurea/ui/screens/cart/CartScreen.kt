@@ -1,84 +1,74 @@
 package com.aureadigitallabs.aurea.ui.screens.cart
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
+import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
+import com.aureadigitallabs.aurea.viewmodel.CartItem
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// 2. Modifica la firma para aceptar el CartViewModel
-fun CartScreen(
-    navController: NavController,
-    cartViewModel: CartViewModel
+fun CartItemRow(
+    item: CartItem,
+    onAdd: (Product) -> Unit,
+    onRemove: (Product) -> Unit
 ) {
-    // 3. Obtén los items directamente del ViewModel. Ya no se necesita `remember` o `LaunchedEffect`.
-    val cartItems = cartViewModel.cartItems
-
-    Scaffold(
-        topBar = {
-            AppTopBar(
-                title = "Carrito de Compras",
-                navController = navController,
-                canNavigateBack = true
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .padding(16.dp)
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (cartItems.isEmpty()) {
-                // Estado vacío
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Tu carrito está vacío")
-                }
-            } else {
-                // Lista de productos
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(cartItems) { (product, quantity) ->
-                        // 4. Llama a los métodos del ViewModel en el callback
-                        CartItemRow(product, quantity) { newQty ->
-                            cartViewModel.updateQuantity(product.id, newQty)
-                        }
-                    }
-                }
-
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
-                // 5. Calcula el total usando el ViewModel
+            Image(
+                painter = painterResource(id = item.product.imageRes),
+                contentDescription = item.product.name,
+                modifier = Modifier
+                    .size(60.dp)
+                    .padding(end = 16.dp),
+                contentScale = ContentScale.Crop
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.product.name, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "Total: \$${cartViewModel.getTotal()}",
-                    style = MaterialTheme.typography.titleLarge
+                    "$${item.product.price}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(onClick = {
-                        // 6. Llama al método para limpiar el carrito del ViewModel
-                        cartViewModel.clearCart()
-                    }) {
-                        Text("Vaciar carrito")
-                    }
-
-                    Button(onClick = { navController.navigate("catalog") }) {
-                        Text("Seguir comprando")
-                    }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = { onRemove(item.product) }, modifier = Modifier.size(24.dp)) {
+                    Icon(if (item.quantity == 1) Icons.Default.Delete else Icons.Default.Remove, "Quitar")
+                }
+                Text(item.quantity.toString(), modifier = Modifier.padding(horizontal = 8.dp))
+                IconButton(onClick = { onAdd(item.product) }, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Default.Add, "Añadir")
                 }
             }
         }
@@ -86,32 +76,87 @@ fun CartScreen(
 }
 
 @Composable
-fun CartItemRow(
-    product: com.aureadigitallabs.aurea.model.Product,
-    quantity: Int,
-    onQuantityChange: (Int) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(product.name, style = MaterialTheme.typography.titleMedium)
-            Text("Precio unitario: \$${product.price}")
-            Text("Subtotal: \$${product.price * quantity}")
+fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
+    val cartState by cartViewModel.cartState.collectAsState()
+    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "AR")) }
 
-            Spacer(modifier = Modifier.height(8.dp))
+    // Estados para el Snackbar
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        topBar = {
+            AppTopBar(
+                title = "Carrito de Compras",
+                navController = navController,
+                canNavigateBack = true
+            )
+        }
+    ) { paddingValues ->
+        if (cartState.items.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
             ) {
-                Button(onClick = { onQuantityChange(quantity - 1) }) {
-                    Text("-")
+                Text("Tu carrito está vacío")
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp)
+            ) {
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(cartState.items) { cartItem ->
+                        CartItemRow(
+                            item = cartItem,
+                            onAdd = { cartViewModel.addProduct(it) },
+                            onRemove = { cartViewModel.removeProduct(it) }
+                        )
+                    }
                 }
-                Text("Cantidad: $quantity")
-                Button(onClick = { onQuantityChange(quantity + 1) }) {
-                    Text("+")
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Total:", style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        currencyFormat.format(cartState.total),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = {
+
+                        scope.launch {
+
+                            snackbarHostState.showSnackbar("¡Gracias por tu compra!")
+
+
+                            cartViewModel.clearCart()
+
+
+                            navController.navigate(NavRoutes.Home.route + "/user") {
+                                popUpTo(NavRoutes.Home.route) {
+                                    inclusive = true
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Text("Finalizar Compra", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

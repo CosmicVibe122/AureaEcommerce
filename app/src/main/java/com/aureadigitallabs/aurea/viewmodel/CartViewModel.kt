@@ -1,49 +1,63 @@
-
 package com.aureadigitallabs.aurea.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import com.aureadigitallabs.aurea.model.Product
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+
+data class CartItem(val product: Product, val quantity: Int)
+
+
+data class CartState(
+    val items: List<CartItem> = emptyList(),
+    val total: Double = 0.0
+)
 
 class CartViewModel : ViewModel() {
+    private val _cartState = MutableStateFlow(CartState())
 
-    private val _cartItems = mutableStateListOf<Pair<Product, Int>>()
-    val cartItems: List<Pair<Product, Int>> = _cartItems
+    val cartState: StateFlow<CartState> = _cartState.asStateFlow()
 
-    fun addToCart(product: Product) {
-        val existingItem = _cartItems.find { it.first.id == product.id }
-        if (existingItem != null) {
 
-            val index = _cartItems.indexOf(existingItem)
-            val newQuantity = existingItem.second + 1
-            _cartItems[index] = existingItem.copy(second = newQuantity)
-        } else {
+    fun addProduct(product: Product) {
+        _cartState.update { currentState ->
+            val existingItem = currentState.items.find { it.product.id == product.id }
+            val newItems = if (existingItem != null) {
 
-            _cartItems.add(product to 1)
-        }
-    }
-
-    fun removeFromCart(productId: Int) {
-        _cartItems.removeAll { it.first.id == productId }
-    }
-
-    fun updateQuantity(productId: Int, newQuantity: Int) {
-        val existingItem = _cartItems.find { it.first.id == productId }
-        if (existingItem != null) {
-            val index = _cartItems.indexOf(existingItem)
-            if (newQuantity > 0) {
-                _cartItems[index] = existingItem.copy(second = newQuantity)
+                currentState.items.map {
+                    if (it.product.id == product.id) it.copy(quantity = it.quantity + 1) else it
+                }
             } else {
-                removeFromCart(productId)
+
+                currentState.items + CartItem(product, 1)
             }
+
+            val newTotal = newItems.sumOf { it.product.price * it.quantity }
+            currentState.copy(items = newItems, total = newTotal)
         }
     }
 
-    fun getTotal(): Double {
-        return _cartItems.sumOf { (product, quantity) -> product.price * quantity }
+
+    fun removeProduct(product: Product) {
+        _cartState.update { currentState ->
+            val existingItem = currentState.items.find { it.product.id == product.id }
+            val newItems = if (existingItem != null && existingItem.quantity > 1) {
+                // Si hay más de uno, reduce la cantidad
+                currentState.items.map {
+                    if (it.product.id == product.id) it.copy(quantity = it.quantity - 1) else it
+                }
+            } else {
+                // Si solo hay uno, o no existe, lo elimina de la lista
+                currentState.items.filterNot { it.product.id == product.id }
+            }
+            val newTotal = newItems.sumOf { it.product.price * it.quantity }
+            currentState.copy(items = newItems, total = newTotal)
+        }
     }
 
     fun clearCart() {
-        _cartItems.clear()
+        _cartState.value = CartState()
     }
 }

@@ -1,4 +1,9 @@
 package com.aureadigitallabs.aurea.ui.screens.login
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.aureadigitallabs.aurea.R
+// ---
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -39,6 +44,16 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // --- CÓDIGO DEL LOGO AÑADIDO AQUÍ ---
+        Image(
+            painter = painterResource(id = R.drawable.aurealogo),
+            contentDescription = stringResource(R.string.aurea_logo_description),
+            modifier = Modifier
+                .size(200.dp) // Puedes ajustar el tamaño si lo deseas
+                .padding(bottom = 32.dp) // Aumentamos el espacio inferior para separarlo del título
+        )
+        // ------------------------------------
+
         Text("Inicio de Sesión", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
 

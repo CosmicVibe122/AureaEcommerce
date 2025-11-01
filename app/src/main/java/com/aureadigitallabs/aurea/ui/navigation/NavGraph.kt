@@ -14,7 +14,7 @@ import com.aureadigitallabs.aurea.ui.screens.admin.AdminScreen
 import com.aureadigitallabs.aurea.ui.screens.catalog.ProductDetailScreen
 import com.aureadigitallabs.aurea.ui.screens.info.AboutScreen
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
-
+import com.aureadigitallabs.aurea.ui.screens.admin.AddEditProductScreen
 
 @Composable
 fun NavGraph(
@@ -24,28 +24,51 @@ fun NavGraph(
     NavHost(
         navController = navController,
         startDestination = NavRoutes.Login.route
+
     ) {
         composable(NavRoutes.Login.route) { LoginScreen(navController) }
-
-        composable(route = NavRoutes.Home.route + "/{role}") { backStackEntry ->
-            HomeScreen(navController, backStackEntry)
+        composable(NavRoutes.Admin.route) { AdminScreen(navController) }
+        composable(route = NavRoutes.Home.route + "/{role}") {
+            HomeScreen(navController)
         }
+
         composable(
             route = "productDetail/{productId}",
             arguments = listOf(navArgument("productId") { type = NavType.IntType })
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getInt("productId")
             if (productId != null) {
-                // 2. Pasa el ViewModel a ProductDetailScreen
+
                 ProductDetailScreen(navController, productId, cartViewModel)
             }
         }
+        composable(
+            route = "add_edit_product?productId={productId}",
+            arguments = listOf(navArgument("productId") {
+                type = NavType.IntType
+                defaultValue = -1
+            })
+        ) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getInt("productId")
+            AddEditProductScreen(navController = navController, productId = if (productId == -1) null else productId)
+        }
+        composable(
+            route = NavRoutes.Catalog.route + "?category={categoryName}", // 1. Define la ruta con un argumento opcional
+            arguments = listOf(navArgument("categoryName") {
+                type = NavType.StringType
+                nullable = true
+            })
+        ) { backStackEntry ->
 
-        composable(NavRoutes.Catalog.route) { CatalogScreen(navController) }
+            val categoryName = backStackEntry.arguments?.getString("categoryName")
 
-        // Ruta única para el carrito
+
+            CatalogScreen(navController = navController, categoryName = categoryName)
+        }
+
+
         composable(NavRoutes.Cart.route) {
-            // 3. Pasa el ViewModel a CartScreen
+
             CartScreen(navController, cartViewModel)
         }
         composable(NavRoutes.About.route) { AboutScreen(navController) }
