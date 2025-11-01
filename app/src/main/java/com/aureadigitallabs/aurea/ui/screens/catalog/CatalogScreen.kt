@@ -25,9 +25,16 @@ import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
 import com.aureadigitallabs.aurea.viewmodel.CatalogViewModelFactory
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun ProductCard(product: Product, onClick: () -> Unit) {
+    val currencyFormat = remember {
+        val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+        format.maximumFractionDigits = 0
+        format
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,12 +58,10 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, style = MaterialTheme.typography.titleMedium)
-                Text("Precio: $${product.price}")
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    product.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2
+                    text = currencyFormat.format(product.price),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
@@ -75,14 +80,14 @@ fun CatalogScreen(navController: NavController, categoryName: String?) {
     val categories = remember { Category.values().toList() }
 
     val initialCategory = remember(categoryName) {
-        if (categoryName == null) {
+        if (categoryName == null || categoryName.isEmpty()) {
             null
         } else {
             categories.find { it.name.equals(categoryName, ignoreCase = true) }
         }
     }
 
-    var selectedCategory by remember { mutableStateOf<Category?>(initialCategory) }
+    var selectedCategory by remember { mutableStateOf(initialCategory) }
 
     val products = if (selectedCategory == null)
         allProducts
@@ -110,6 +115,11 @@ fun CatalogScreen(navController: NavController, categoryName: String?) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
+                FilterChip(
+                    selected = selectedCategory == null,
+                    onClick = { selectedCategory = null },
+                    label = { Text("Todos") }
+                )
                 categories.forEach { category ->
                     FilterChip(
                         selected = selectedCategory == category,

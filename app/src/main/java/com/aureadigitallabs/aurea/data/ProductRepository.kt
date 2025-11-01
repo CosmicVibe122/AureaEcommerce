@@ -9,12 +9,12 @@ class ProductRepository(private val productDao: ProductDao) {
 
     companion object {
         fun getInitialProducts(): List<Product> = listOf(
-            Product(1, "Tabla de Skate Completa", 79.99, "Tabla de arce de 7 capas, ideal para principiantes.", Category.SKATE, R.drawable.skatepro),
-            Product(2, "Ruedas de Skate Pro", 29.99, "Juego de 4 ruedas de uretano de alta dureza.", Category.SKATE, R.drawable.rollerinline),
-            Product(3, "Patines en Línea Ajustables", 89.99, "Patines cómodos y ajustables para todas las edades.", Category.ROLLER, R.drawable.roller),
-            Product(4, "Set de Protecciones", 34.99, "Incluye rodilleras, coderas y muñequeras.", Category.ROLLER, R.drawable.proteccionesroller),
-            Product(5, "BMX Freestyle 20\"", 249.99, "Bicicleta robusta para trucos en parque y calle.", Category.BMX, R.drawable.bmxstreet),
-            Product(6, "Casco Urbano Certificado", 49.99, "Casco con certificación de seguridad para múltiples deportes.", Category.BMX, R.drawable.cascobmx)
+            Product(1, "Tabla de Skate Completa", 15000.0, "Tabla de arce de 7 capas, ideal para principiantes.", Category.SKATE, R.drawable.skatepro),
+            Product(2, "Ruedas de Skate Pro", 25000.0, "Juego de 4 ruedas de uretano de alta dureza.", Category.SKATE, R.drawable.rollerinline),
+            Product(3, "Patines en Línea Ajustables", 30000.0, "Patines cómodos y ajustables para todas las edades.", Category.ROLLER, R.drawable.roller),
+            Product(4, "Set de Protecciones", 49990.0, "Incluye rodilleras, coderas y muñequeras.", Category.ROLLER, R.drawable.proteccionesroller),
+            Product(5, "BMX Freestyle 20", 119000.0, "Bicicleta robusta para trucos en parque y calle.", Category.BMX, R.drawable.bmxstunt),
+            Product(6, "Casco BMX", 25990.0, "Casco con certificación de seguridad para múltiples deportes.", Category.BMX, R.drawable.cascoskate)
         )
     }
 

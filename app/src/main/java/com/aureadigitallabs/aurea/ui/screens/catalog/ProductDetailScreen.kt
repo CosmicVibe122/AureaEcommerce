@@ -10,6 +10,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -21,10 +23,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
-import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 import com.aureadigitallabs.aurea.viewmodel.ProductDetailViewModel
 import com.aureadigitallabs.aurea.viewmodel.ProductDetailViewModelFactory
+import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun ProductDetailScreen(
@@ -32,18 +36,22 @@ fun ProductDetailScreen(
     productId: Int,
     cartViewModel: CartViewModel
 ) {
-
+    val currencyFormat = remember {
+        val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+        format.maximumFractionDigits = 0
+        format
+    }
     val application = LocalContext.current.applicationContext as AureaApplication
-
-
     val viewModel: ProductDetailViewModel = viewModel(
         factory = ProductDetailViewModelFactory(application.repository, productId)
     )
-
-
     val product by viewModel.product.collectAsState(initial = null)
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             AppTopBar(
                 title = product?.name ?: "Cargando...",
@@ -52,7 +60,6 @@ fun ProductDetailScreen(
             )
         }
     ) { paddingValues ->
-
         if (product == null) {
             Box(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -61,7 +68,6 @@ fun ProductDetailScreen(
                 CircularProgressIndicator()
             }
         } else {
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -69,7 +75,6 @@ fun ProductDetailScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                // Imagen del producto
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -86,7 +91,6 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-
                 Text(
                     text = product!!.name,
                     style = MaterialTheme.typography.headlineLarge,
@@ -95,28 +99,27 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-
                 Text(
-                    text = "$${product!!.price}",
+                    text = currencyFormat.format(product!!.price),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-
                 Text(
                     text = product!!.description,
                     style = MaterialTheme.typography.bodyLarge
                 )
 
-                Spacer(modifier = Modifier.weight(1f)) // Empuja el botón hacia abajo
-
+                Spacer(modifier = Modifier.weight(1f))
 
                 Button(
                     onClick = {
                         cartViewModel.addProduct(product!!)
-                        navController.navigate(NavRoutes.Cart.route)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("¡Producto añadido al carrito!")
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -134,4 +137,3 @@ fun ProductDetailScreen(
         }
     }
 }
-

@@ -1,4 +1,5 @@
 package com.aureadigitallabs.aurea.ui.screens.login
+
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,14 +27,15 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
     val errorMessage by viewModel.errorMessage
     val loggedUser by viewModel.loggedUser
 
-    // Si el usuario se logueó correctamente, navega al Home
     if (loggedUser != null) {
         val role = loggedUser!!.role.name
-        // Pasamos el rol a la pantalla Home
         LaunchedEffect(Unit) {
-            navController.navigate("${NavRoutes.Home.route}/$role") {
+            // --- CORRECCIÓN AQUÍ ---
+            // Navegamos a la ruta completa, proveyendo el valor por defecto para 'showPurchaseMessage'.
+            navController.navigate("${NavRoutes.Home.route}/$role?showPurchaseMessage=false") {
                 popUpTo(NavRoutes.Login.route) { inclusive = true }
             }
+            // --- FIN DE LA CORRECCIÓN ---
         }
     }
 
@@ -44,15 +46,13 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- CÓDIGO DEL LOGO AÑADIDO AQUÍ ---
         Image(
             painter = painterResource(id = R.drawable.aurealogo),
             contentDescription = stringResource(R.string.aurea_logo_description),
             modifier = Modifier
-                .size(200.dp) // Puedes ajustar el tamaño si lo deseas
-                .padding(bottom = 32.dp) // Aumentamos el espacio inferior para separarlo del título
+                .size(200.dp)
+                .padding(bottom = 32.dp)
         )
-        // ------------------------------------
 
         Text("Inicio de Sesión", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))

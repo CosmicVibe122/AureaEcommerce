@@ -36,6 +36,11 @@ fun CartItemRow(
     onAdd: (Product) -> Unit,
     onRemove: (Product) -> Unit
 ) {
+    val currencyFormat = remember {
+        val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+        format.maximumFractionDigits = 0
+        format
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,7 +62,7 @@ fun CartItemRow(
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.product.name, style = MaterialTheme.typography.titleSmall)
                 Text(
-                    "$${item.product.price}",
+                    text = currencyFormat.format(item.product.price),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -78,9 +83,12 @@ fun CartItemRow(
 @Composable
 fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
     val cartState by cartViewModel.cartState.collectAsState()
-    val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "AR")) }
+    val currencyFormat = remember {
+        val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
+        format.maximumFractionDigits = 0
+        format
+    }
 
-    // Estados para el Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -136,22 +144,13 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
-
-                        scope.launch {
-
-                            snackbarHostState.showSnackbar("¡Gracias por tu compra!")
-
-
-                            cartViewModel.clearCart()
-
-
-                            navController.navigate(NavRoutes.Home.route + "/user") {
-                                popUpTo(NavRoutes.Home.route) {
-                                    inclusive = true
-                                }
-                            }
+                        // Limpia el carrito y navega con un nuevo parámetro
+                        cartViewModel.clearCart()
+                        navController.navigate("${NavRoutes.Home.route}/user?showPurchaseMessage=true") {
+                            popUpTo(NavRoutes.Home.route) { inclusive = true }
                         }
                     },
+
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
