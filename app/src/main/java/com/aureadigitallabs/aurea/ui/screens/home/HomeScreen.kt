@@ -200,10 +200,9 @@ fun FeaturedProductCard(product: Product, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-// --- 1. FIRMA DE LA FUNCIÓN CORREGIDA ---
 fun HomeScreen(
     navController: NavController,
-    showPurchaseMessage: Boolean // <<--- PARÁMETRO AÑADIDO
+    showPurchaseMessage: Boolean
 ) {
     val categories = Category.values().toList()
     val backStackEntry = navController.currentBackStackEntryAsState().value
@@ -218,14 +217,12 @@ fun HomeScreen(
     )
     val allProducts by catalogViewModel.allProducts.collectAsState(initial = emptyList())
 
-    // --- 2. LÓGICA DEL SNACKBAR AÑADIDA ---
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(showPurchaseMessage) {
         if (showPurchaseMessage) {
             snackbarHostState.showSnackbar("¡Gracias por tu compra!")
         }
     }
-    // -------------------------------------
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -237,7 +234,6 @@ fun HomeScreen(
             }
         }
     ) {
-        // --- 3. SNACKBARHOST AÑADIDO AL SCAFFOLD ---
         Scaffold(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {

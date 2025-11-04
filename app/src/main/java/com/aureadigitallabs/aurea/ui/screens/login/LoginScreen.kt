@@ -30,12 +30,12 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewMo
     if (loggedUser != null) {
         val role = loggedUser!!.role.name
         LaunchedEffect(Unit) {
-            // --- CORRECCIÓN AQUÍ ---
-            // Navegamos a la ruta completa, proveyendo el valor por defecto para 'showPurchaseMessage'.
+
+
             navController.navigate("${NavRoutes.Home.route}/$role?showPurchaseMessage=false") {
                 popUpTo(NavRoutes.Login.route) { inclusive = true }
             }
-            // --- FIN DE LA CORRECCIÓN ---
+
         }
     }
 

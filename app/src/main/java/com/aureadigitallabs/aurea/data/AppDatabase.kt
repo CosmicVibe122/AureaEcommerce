@@ -30,11 +30,11 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "aurea_database"
                 )
-                    // --- AÑADE ESTE BLOQUE ---
+
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
-                            // Inserta los datos iniciales en un hilo de fondo
+
                             INSTANCE?.let { database ->
                                 CoroutineScope(Dispatchers.IO).launch {
                                     val initialProducts = ProductRepository.getInitialProducts()
@@ -43,7 +43,6 @@ abstract class AppDatabase : RoomDatabase() {
                             }
                         }
                     })
-                    // --- FIN DEL BLOQUE ---
                     .build()
                 INSTANCE = instance
                 instance

@@ -73,7 +73,7 @@ fun AppDrawerContent(
                 icon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Quiénes Somos") }
             )
 
-            // --- CORRECCIÓN AQUÍ ---
+
             if (role.equals("admin", ignoreCase = true)) {
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
                 NavigationDrawerItem(
@@ -86,7 +86,7 @@ fun AppDrawerContent(
                     icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin") }
                 )
             }
-            // --- FIN DE LA CORRECCIÓN ---
+
 
             Spacer(modifier = Modifier.weight(1f))
             Divider(modifier = Modifier.padding(bottom = 12.dp))
