@@ -71,6 +71,18 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
+// Retrofit (Para conectar con la API)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Interceptor para logging de Retrofit
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3")
+
+// Coil (Para cargar imágenes desde URL en el futuro, opcional por ahora pero recomendado)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Jetpack DataStore (Para guardar el token de sesión)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 
 
 }

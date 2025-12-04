@@ -1,84 +1,45 @@
 package com.aureadigitallabs.aurea.ui.screens.home
 
-
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.aureadigitallabs.aurea.AureaApplication
-import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
-import com.aureadigitallabs.aurea.viewmodel.CatalogViewModelFactory
-import java.text.NumberFormat
-import java.util.Locale
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import com.aureadigitallabs.aurea.R
-import kotlinx.coroutines.delay
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberDrawerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import com.aureadigitallabs.aurea.AureaApplication
+import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.drawer.AppDrawerContent
 import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
+import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -120,7 +81,6 @@ fun ImageCarousel() {
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryButton(category: Category, onClick: () -> Unit) {
@@ -155,7 +115,6 @@ fun CategoryButton(category: Category, onClick: () -> Unit) {
     }
 }
 
-
 @Composable
 fun FeaturedProductCard(product: Product, onClick: () -> Unit) {
     val currencyFormat = remember {
@@ -163,16 +122,22 @@ fun FeaturedProductCard(product: Product, onClick: () -> Unit) {
         format.maximumFractionDigits = 0
         format
     }
+
+    val context = LocalContext.current
+    val imageResId = remember(product.imageName) {
+        context.resources.getIdentifier(product.imageName, "drawable", context.packageName)
+    }
+
     Card(
         modifier = Modifier
-            .width(180.dp) // Ancho fijo para las tarjetas
+            .width(180.dp)
             .padding(8.dp)
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
             Image(
-                painter = painterResource(id = product.imageRes),
+                painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
                 contentDescription = product.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -190,30 +155,28 @@ fun FeaturedProductCard(product: Product, onClick: () -> Unit) {
                 Text(
                     text = currencyFormat.format(product.price),
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = MaterialTheme.typography.bodyMedium.fontWeight
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
-    showPurchaseMessage: Boolean
+    showPurchaseMessage: Boolean,
+    role: String?
 ) {
     val categories = Category.values().toList()
-    val backStackEntry = navController.currentBackStackEntryAsState().value
-    val role = backStackEntry?.arguments?.getString("role") ?: "user"
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-
-    val application = LocalContext.current.applicationContext as AureaApplication
+    val context = LocalContext.current
+    val application = context.applicationContext as AureaApplication
     val catalogViewModel: CatalogViewModel = viewModel(
-        factory = CatalogViewModelFactory(application.repository)
+        factory = CatalogViewModel.Factory(application.productRepository)
     )
     val allProducts by catalogViewModel.allProducts.collectAsState(initial = emptyList())
 
@@ -238,7 +201,7 @@ fun HomeScreen(
             snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Aurea") },
+                    title = { Text("Aurea - Rol: ${role ?: "ninguno"}") },
                     navigationIcon = {
                         IconButton(onClick = { scope.launch { drawerState.open() } }) {
                             Icon(Icons.Filled.Menu, contentDescription = "Abrir menú")

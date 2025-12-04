@@ -3,10 +3,11 @@ package com.aureadigitallabs.aurea.ui.screens.cart
 import com.aureadigitallabs.aurea.model.Product
 
 object CartManager {
-    private val _cartItems = mutableListOf<Pair<Product, Int>>() // Producto y cantidad
+    private val _cartItems = mutableListOf<Pair<Product, Int>>()
     val cartItems: List<Pair<Product, Int>> get() = _cartItems
 
     fun addToCart(product: Product) {
+
         val existingIndex = _cartItems.indexOfFirst { it.first.id == product.id }
         if (existingIndex != -1) {
             val current = _cartItems[existingIndex]
@@ -16,11 +17,13 @@ object CartManager {
         }
     }
 
-    fun removeFromCart(productId: Int) {
+
+    fun removeFromCart(productId: Long) {
         _cartItems.removeAll { it.first.id == productId }
     }
 
-    fun updateQuantity(productId: Int, quantity: Int) {
+
+    fun updateQuantity(productId: Long, quantity: Int) {
         val index = _cartItems.indexOfFirst { it.first.id == productId }
         if (index != -1 && quantity > 0) {
             val current = _cartItems[index]

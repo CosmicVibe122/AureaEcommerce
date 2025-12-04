@@ -6,26 +6,23 @@ import com.aureadigitallabs.aurea.data.ProductRepository
 import com.aureadigitallabs.aurea.model.Product
 import kotlinx.coroutines.flow.Flow
 
-class ProductDetailViewModel(
-    private val repository: ProductRepository,
-    private val productId: Int
-) : ViewModel() {
+class ProductDetailViewModel(repository: ProductRepository, productId: Long) : ViewModel() {
 
-    val product: Flow<Product> = repository.getProductById(productId)
-}
 
-class ProductDetailViewModelFactory(
-    private val repository: ProductRepository,
-    private val productId: Int
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ProductDetailViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return ProductDetailViewModel(repository, productId) as T
+    val product: Flow<Product?> = repository.getProductById(productId)
+
+
+    companion object {
+        fun Factory(repository: ProductRepository, productId: Long): ViewModelProvider.Factory {
+            return object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                    if (modelClass.isAssignableFrom(ProductDetailViewModel::class.java)) {
+                        return ProductDetailViewModel(repository, productId) as T
+                    }
+                    throw IllegalArgumentException("Unknown ViewModel class")
+                }
+            }
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
-
-
-

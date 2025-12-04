@@ -33,7 +33,10 @@ fun NavGraph(
         composable(
             route = NavRoutes.Home.route + "/{role}?showPurchaseMessage={showPurchaseMessage}",
             arguments = listOf(
-                navArgument("role") { type = NavType.StringType },
+                navArgument("role") {
+                    type = NavType.StringType
+                    defaultValue = "user"
+                },
                 navArgument("showPurchaseMessage") {
                     type = NavType.BoolType
                     defaultValue = false
@@ -41,8 +44,11 @@ fun NavGraph(
             )
         ) { backStackEntry ->
             val showMessage = backStackEntry.arguments?.getBoolean("showPurchaseMessage") ?: false
-            HomeScreen(navController = navController, showPurchaseMessage = showMessage)
+
+            val role = backStackEntry.arguments?.getString("role")
+            HomeScreen(navController = navController, showPurchaseMessage = showMessage, role = role)
         }
+
         composable(
             route = NavRoutes.Catalog.route + "?category={categoryName}",
             arguments = listOf(navArgument("categoryName") {
@@ -56,15 +62,14 @@ fun NavGraph(
 
         composable(
             route = "productDetail/{productId}",
-            arguments = listOf(navArgument("productId") { type = NavType.IntType })
+            arguments = listOf(navArgument("productId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getInt("productId")
+            val productId = backStackEntry.arguments?.getLong("productId")
             if (productId != null) {
                 ProductDetailScreen(navController, productId, cartViewModel)
             }
         }
 
-        // --- Rutas de Carrito e Información ---
         composable(NavRoutes.Cart.route) {
             CartScreen(navController, cartViewModel)
         }
@@ -73,7 +78,6 @@ fun NavGraph(
             AboutScreen(navController)
         }
 
-        // --- Rutas de Administración ---
         composable(NavRoutes.Admin.route) {
             AdminScreen(navController)
         }
@@ -81,12 +85,12 @@ fun NavGraph(
         composable(
             route = "add_edit_product?productId={productId}",
             arguments = listOf(navArgument("productId") {
-                type = NavType.IntType
-                defaultValue = -1 // -1 significa que es un producto nuevo
+                type = NavType.LongType
+                defaultValue = -1L
             })
         ) { backStackEntry ->
-            val productId = backStackEntry.arguments?.getInt("productId")
-            AddEditProductScreen(navController = navController, productId = if (productId == -1) null else productId)
+            val productId = backStackEntry.arguments?.getLong("productId")
+            AddEditProductScreen(navController = navController, productId = if (productId == -1L) null else productId)
         }
     }
 }

@@ -22,10 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.AureaApplication
+import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 import com.aureadigitallabs.aurea.viewmodel.ProductDetailViewModel
-import com.aureadigitallabs.aurea.viewmodel.ProductDetailViewModelFactory
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
@@ -33,19 +33,30 @@ import java.util.Locale
 @Composable
 fun ProductDetailScreen(
     navController: NavController,
-    productId: Int,
+    productId: Long,
     cartViewModel: CartViewModel
 ) {
+    val context = LocalContext.current
+    val application = context.applicationContext as AureaApplication
+
+
+    val viewModel: ProductDetailViewModel = viewModel(
+        factory = ProductDetailViewModel.Factory(application.productRepository, productId)
+    )
+
+    val product by viewModel.product.collectAsState(initial = null)
+
+    val imageResId = remember(product) {
+        product?.let {
+            context.resources.getIdentifier(it.imageName, "drawable", context.packageName)
+        } ?: 0
+    }
+
     val currencyFormat = remember {
         val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
         format.maximumFractionDigits = 0
         format
     }
-    val application = LocalContext.current.applicationContext as AureaApplication
-    val viewModel: ProductDetailViewModel = viewModel(
-        factory = ProductDetailViewModelFactory(application.repository, productId)
-    )
-    val product by viewModel.product.collectAsState(initial = null)
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -62,7 +73,9 @@ fun ProductDetailScreen(
     ) { paddingValues ->
         if (product == null) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator()
@@ -82,7 +95,7 @@ fun ProductDetailScreen(
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = product!!.imageRes),
+                        painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
                         contentDescription = product!!.name,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

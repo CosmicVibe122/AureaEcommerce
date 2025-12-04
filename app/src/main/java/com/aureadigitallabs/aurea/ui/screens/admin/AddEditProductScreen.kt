@@ -1,11 +1,24 @@
 package com.aureadigitallabs.aurea.ui.screens.admin
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -16,21 +29,23 @@ import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.AddEditProductViewModel
-import com.aureadigitallabs.aurea.viewmodel.AddEditProductViewModelFactory
 import com.aureadigitallabs.aurea.viewmodel.ProductUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditProductScreen(navController: NavController, productId: Int?) {
+fun AddEditProductScreen(navController: NavController, productId: Long?) {
+    // 1. Obtenemos la instancia de la Application
     val application = LocalContext.current.applicationContext as AureaApplication
+
+    // 2. Usamos la Factory con la nueva propiedad 'productRepository'
     val viewModel: AddEditProductViewModel = viewModel(
-        factory = AddEditProductViewModelFactory(application.repository, productId)
+        factory = AddEditProductViewModel.Factory(application.productRepository, productId)
     )
 
     Scaffold(
         topBar = {
             AppTopBar(
-                title = if (productId == null) "Añadir Producto" else "Editar Producto",
+                title = if (productId == null || productId == 0L) "Añadir Producto" else "Editar Producto",
                 navController = navController,
                 canNavigateBack = true
             )
@@ -41,7 +56,7 @@ fun AddEditProductScreen(navController: NavController, productId: Int?) {
             onStateChange = viewModel::updateUiState,
             onSaveClick = {
                 viewModel.saveProduct()
-                navController.popBackStack() // Vuelve a la pantalla de admin
+                navController.popBackStack()
             },
             modifier = Modifier.padding(paddingValues)
         )
@@ -63,7 +78,6 @@ fun ProductForm(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Campo para el nombre
         OutlinedTextField(
             value = productUiState.name,
             onValueChange = { onStateChange(productUiState.copy(name = it)) },
@@ -72,7 +86,6 @@ fun ProductForm(
             singleLine = true
         )
 
-        // Campo para el precio
         OutlinedTextField(
             value = productUiState.price,
             onValueChange = { onStateChange(productUiState.copy(price = it)) },
@@ -81,7 +94,6 @@ fun ProductForm(
             singleLine = true
         )
 
-        // Campo para la descripción
         OutlinedTextField(
             value = productUiState.description,
             onValueChange = { onStateChange(productUiState.copy(description = it)) },
@@ -90,7 +102,6 @@ fun ProductForm(
             minLines = 3
         )
 
-        // Dropdown para la categoría
         var expanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = expanded,
@@ -122,10 +133,9 @@ fun ProductForm(
             }
         }
 
-        // Botón de Guardar
         Button(
             onClick = onSaveClick,
-            enabled = productUiState.isEntryValid, // Se activa solo si los datos son válidos
+            enabled = productUiState.isEntryValid,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Guardar Producto")

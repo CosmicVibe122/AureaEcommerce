@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -24,7 +23,6 @@ import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
-import com.aureadigitallabs.aurea.viewmodel.CatalogViewModelFactory
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -35,6 +33,12 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
         format.maximumFractionDigits = 0
         format
     }
+
+    val context = LocalContext.current
+    val imageResId = remember(product.imageName) {
+        context.resources.getIdentifier(product.imageName, "drawable", context.packageName)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -46,16 +50,14 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (product.imageRes != 0) {
-                Image(
-                    painter = painterResource(id = product.imageRes),
-                    contentDescription = stringResource(R.string.product_image_description, product.name),
-                    modifier = Modifier
-                        .size(80.dp)
-                        .padding(end = 16.dp),
-                    contentScale = ContentScale.Crop
-                )
-            }
+            Image(
+                painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
+                contentDescription = product.name,
+                modifier = Modifier
+                    .size(80.dp)
+                    .padding(end = 16.dp),
+                contentScale = ContentScale.Crop
+            )
             Column(modifier = Modifier.weight(1f)) {
                 Text(product.name, style = MaterialTheme.typography.titleMedium)
                 Spacer(modifier = Modifier.height(4.dp))
@@ -72,8 +74,10 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
 @Composable
 fun CatalogScreen(navController: NavController, categoryName: String?) {
     val application = LocalContext.current.applicationContext as AureaApplication
+    
+    // CORRECCIÓN: Usamos la Factory del ViewModel y el nuevo productRepository
     val viewModel: CatalogViewModel = viewModel(
-        factory = CatalogViewModelFactory(application.repository)
+        factory = CatalogViewModel.Factory(application.productRepository)
     )
 
     val allProducts by viewModel.allProducts.collectAsState(initial = emptyList())

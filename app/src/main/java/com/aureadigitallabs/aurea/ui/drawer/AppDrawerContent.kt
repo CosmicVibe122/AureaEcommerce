@@ -74,7 +74,7 @@ fun AppDrawerContent(
             )
 
 
-            if (role.equals("admin", ignoreCase = true)) {
+            if (role == "ADMIN") {
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
                 NavigationDrawerItem(
                     label = { Text("Panel de Administración") },
@@ -86,7 +86,6 @@ fun AppDrawerContent(
                     icon = { Icon(Icons.Default.AdminPanelSettings, contentDescription = "Admin") }
                 )
             }
-
 
             Spacer(modifier = Modifier.weight(1f))
             Divider(modifier = Modifier.padding(bottom = 12.dp))

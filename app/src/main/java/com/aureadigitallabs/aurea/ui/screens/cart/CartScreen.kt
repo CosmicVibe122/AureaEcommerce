@@ -17,10 +17,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
@@ -41,6 +43,16 @@ fun CartItemRow(
         format.maximumFractionDigits = 0
         format
     }
+
+    val context = LocalContext.current
+    val imageResId = remember(item.product.imageName) {
+        context.resources.getIdentifier(
+            item.product.imageName,
+            "drawable",
+            context.packageName
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,7 +64,7 @@ fun CartItemRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = item.product.imageRes),
+                painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
                 contentDescription = item.product.name,
                 modifier = Modifier
                     .size(60.dp)
@@ -144,13 +156,11 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
-                        // Limpia el carrito y navega con un nuevo parámetro
                         cartViewModel.clearCart()
                         navController.navigate("${NavRoutes.Home.route}/user?showPurchaseMessage=true") {
                             popUpTo(NavRoutes.Home.route) { inclusive = true }
                         }
                     },
-
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)

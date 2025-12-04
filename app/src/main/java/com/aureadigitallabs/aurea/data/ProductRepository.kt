@@ -1,48 +1,71 @@
 package com.aureadigitallabs.aurea.data
 
-import com.aureadigitallabs.aurea.R
-import com.aureadigitallabs.aurea.model.Category
+import android.util.Log
+import com.aureadigitallabs.aurea.api.RetrofitClient
 import com.aureadigitallabs.aurea.model.Product
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 
-class ProductRepository(private val productDao: ProductDao) {
+class ProductRepository(private val sessionManager: SessionManager) {
 
-    companion object {
-        fun getInitialProducts(): List<Product> = listOf(
-            Product(1, "Tabla de Skate Completa", 15000.0, "Tabla de arce de 7 capas, ideal para principiantes.", Category.SKATE, R.drawable.skatepro),
-            Product(2, "Ruedas de Skate Pro", 25000.0, "Juego de 4 ruedas de uretano de alta dureza.", Category.SKATE, R.drawable.rollerinline),
-            Product(3, "Patines en Línea Ajustables", 30000.0, "Patines cómodos y ajustables para todas las edades.", Category.ROLLER, R.drawable.roller),
-            Product(4, "Set de Protecciones", 49990.0, "Incluye rodilleras, coderas y muñequeras.", Category.ROLLER, R.drawable.proteccionesroller),
-            Product(5, "BMX Freestyle 20", 119000.0, "Bicicleta robusta para trucos en parque y calle.", Category.BMX, R.drawable.bmxstunt),
-            Product(6, "Casco BMX", 25990.0, "Casco con certificación de seguridad para múltiples deportes.", Category.BMX, R.drawable.cascoskate)
-        )
+
+    fun getAllProducts(): Flow<List<Product>> = flow {
+        try {
+            val products = RetrofitClient.service.getProducts()
+            emit(products)
+        } catch (e: Exception) {
+            Log.e("API_ERROR", "Error al obtener productos", e)
+            emit(emptyList())
+        }
     }
 
-    fun getAllProducts(): Flow<List<Product>> {
-        return productDao.getAllProducts()
+    fun getProductById(id: Long): Flow<Product?> = flow {
+        try {
+            val product = RetrofitClient.service.getProductById(id)
+            emit(product)
+        } catch (e: Exception) {
+            emit(null)
+        }
     }
 
-    fun getProductById(id: Int): Flow<Product> {
-        return productDao.getProductById(id)
-    }
 
-    @Suppress("RedundantSuspendModifier")
     suspend fun insert(product: Product) {
-        productDao.insert(product)
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                // RetrofitClient enviará el producto. La API ignorará el ID 0 y creará uno nuevo.
+                RetrofitClient.service.createProduct("Bearer $token", product)
+                Log.d("API_SUCCESS", "Producto creado: ${product.name}")
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Error al crear: ${e.message}")
+            }
+        }
     }
 
-    @Suppress("RedundantSuspendModifier")
+
     suspend fun update(product: Product) {
-        productDao.update(product)
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                RetrofitClient.service.updateProduct(product.id, "Bearer $token", product)
+                Log.d("API_SUCCESS", "Producto actualizado: ${product.name}")
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Error al actualizar: ${e.message}")
+            }
+        }
     }
 
-    @Suppress("RedundantSuspendModifier")
+
     suspend fun delete(product: Product) {
-        productDao.delete(product)
-    }
-    // ------------------------------------
-
-    suspend fun insertInitialProducts() {
-        productDao.insertAll(getInitialProducts())
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                RetrofitClient.service.deleteProduct(product.id, "Bearer $token")
+                Log.d("API_SUCCESS", "Producto eliminado: ${product.id}")
+            } catch (e: Exception) {
+                Log.e("API_ERROR", "Error al eliminar: ${e.message}")
+            }
+        }
     }
 }
