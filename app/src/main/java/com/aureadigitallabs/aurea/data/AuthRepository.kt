@@ -12,7 +12,7 @@ class AuthRepository {
         return try {
             RetrofitClient.service.login(loginRequest)
         } catch (e: Exception) {
-            //Se imprime un log en Logcat con el error
+
             Log.e("API_LOGIN_ERROR", "Error al intentar iniciar sesión: ${e.message}", e)
             e.printStackTrace()
             null

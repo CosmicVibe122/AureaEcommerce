@@ -269,7 +269,7 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Catálogo")
                     }
-                    Button(onClick = { navController.navigate(NavRoutes.Cart.route) }) {
+                    Button(onClick = { navController.navigate("${NavRoutes.Cart.route}?role=${role ?: "user"}") }) {
                         Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Carrito")

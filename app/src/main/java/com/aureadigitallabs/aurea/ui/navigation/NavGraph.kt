@@ -70,9 +70,17 @@ fun NavGraph(
             }
         }
 
-        composable(NavRoutes.Cart.route) {
-            CartScreen(navController, cartViewModel)
+        composable(
+            route = "${NavRoutes.Cart.route}?role={role}",
+            arguments = listOf(navArgument("role") {
+                type = NavType.StringType
+                defaultValue = "user" // Esto evita el crash si no llega el dato
+            })
+        ) { backStackEntry ->
+            val role = backStackEntry.arguments?.getString("role") ?: "user"
+            CartScreen(navController, cartViewModel, role)
         }
+
 
         composable(NavRoutes.About.route) {
             AboutScreen(navController)

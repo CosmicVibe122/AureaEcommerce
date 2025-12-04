@@ -57,7 +57,7 @@ fun AppDrawerContent(
                 label = { Text("Ir al Carrito") },
                 selected = false,
                 onClick = {
-                    navController.navigate(NavRoutes.Cart.route)
+                    navController.navigate("${NavRoutes.Cart.route}?role=${role ?: "user"}")
                     onMenuClick()
                 },
                 icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito") }

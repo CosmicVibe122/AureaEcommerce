@@ -93,7 +93,7 @@ fun CartItemRow(
 }
 
 @Composable
-fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
+fun CartScreen(navController: NavController, cartViewModel: CartViewModel, role: String) {
     val cartState by cartViewModel.cartState.collectAsState()
     val currencyFormat = remember {
         val format = NumberFormat.getCurrencyInstance(Locale("es", "CL"))
@@ -157,7 +157,7 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel) {
                 Button(
                     onClick = {
                         cartViewModel.clearCart()
-                        navController.navigate("${NavRoutes.Home.route}/user?showPurchaseMessage=true") {
+                        navController.navigate("${NavRoutes.Home.route}/$role?showPurchaseMessage=true") {
                             popUpTo(NavRoutes.Home.route) { inclusive = true }
                         }
                     },
