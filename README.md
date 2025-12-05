@@ -74,6 +74,7 @@ La comunicación se realiza mediante **Retrofit**.
 ## 5. Evidencia de Entrega (APK Firmado y Keystore)
 
 ### Captura del archivo .jks y APK generado
-<img width="415" height="137" alt="image" src="https://github.com/user-attachments/assets/732544f7-685a-4d92-a243-b5e740e407ed" />
+<img width="399" height="107" alt="{BFA6F533-769E-4369-A38F-854E7191FBB0}" src="https://github.com/user-attachments/assets/26db708b-5225-4916-82e5-0ab70ee4e14c" />
+
 
 
