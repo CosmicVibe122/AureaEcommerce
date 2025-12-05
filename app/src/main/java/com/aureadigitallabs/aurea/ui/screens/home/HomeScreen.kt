@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -33,6 +34,7 @@ import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
+import com.aureadigitallabs.aurea.ui.common.getCategoryIcon
 import com.aureadigitallabs.aurea.ui.drawer.AppDrawerContent
 import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
 import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
@@ -81,39 +83,31 @@ fun ImageCarousel() {
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CategoryButton(category: Category, onClick: () -> Unit) {
+fun CategoryButton(category: Category, icon: ImageVector, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
-            .padding(4.dp)
-            .aspectRatio(1f)
-            .clickable(onClick = onClick),
+        modifier = Modifier.padding(4.dp).aspectRatio(1f).clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = MaterialTheme.shapes.medium
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp),
+            modifier = Modifier.fillMaxSize().padding(4.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = category.icon,
-                contentDescription = category.name,
-                modifier = Modifier.size(36.dp)
-            )
+            Icon(imageVector = icon, contentDescription = category.name, modifier = Modifier.size(36.dp))
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = category.name,
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 2.dp)
+                textAlign = TextAlign.Center
             )
         }
     }
 }
+
 
 @Composable
 fun FeaturedProductCard(product: Product, onClick: () -> Unit) {
@@ -169,7 +163,6 @@ fun HomeScreen(
     showPurchaseMessage: Boolean,
     role: String?
 ) {
-    val categories = Category.values().toList()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
@@ -178,6 +171,7 @@ fun HomeScreen(
     val catalogViewModel: CatalogViewModel = viewModel(
         factory = CatalogViewModel.Factory(application.productRepository)
     )
+    val categories by catalogViewModel.categories.collectAsState(initial = emptyList())
     val allProducts by catalogViewModel.allProducts.collectAsState(initial = emptyList())
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -230,7 +224,10 @@ fun HomeScreen(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 ) {
                     items(categories) { category ->
-                        CategoryButton(category = category) {
+                        CategoryButton(
+                            category = category,
+                            icon = getCategoryIcon(category.iconName) // Usamos el helper
+                        ) {
                             navController.navigate("${NavRoutes.Catalog.route}?category=${category.name}")
                         }
                     }

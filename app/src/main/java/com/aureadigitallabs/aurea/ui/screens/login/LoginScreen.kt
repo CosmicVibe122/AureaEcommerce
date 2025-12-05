@@ -88,5 +88,10 @@ fun LoginScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = it, color = MaterialTheme.colorScheme.error)
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        TextButton(onClick = { navController.navigate(NavRoutes.Register.route) }) {
+            Text("¿No tienes cuenta? Regístrate aquí")
+        }
     }
 }

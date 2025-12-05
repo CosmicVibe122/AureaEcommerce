@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.AureaApplication
-import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.AddEditProductViewModel
 import com.aureadigitallabs.aurea.viewmodel.ProductUiState
@@ -108,28 +107,19 @@ fun ProductForm(
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                value = productUiState.category.name,
+                // Manejo seguro por si category es null
+                value = productUiState.category?.name ?: "Seleccione...",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Categoría") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor()
+                modifier = Modifier.fillMaxWidth().menuAnchor()
             )
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                Category.values().forEach { category ->
-                    DropdownMenuItem(
-                        text = { Text(category.name) },
-                        onClick = {
-                            onStateChange(productUiState.copy(category = category))
-                            expanded = false
-                        }
-                    )
-                }
+
             }
         }
 

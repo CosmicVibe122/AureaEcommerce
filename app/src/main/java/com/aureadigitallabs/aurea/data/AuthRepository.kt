@@ -4,6 +4,7 @@ import android.util.Log
 import com.aureadigitallabs.aurea.api.RetrofitClient
 import com.aureadigitallabs.aurea.model.LoginRequest
 import com.aureadigitallabs.aurea.model.LoginResponse
+import com.aureadigitallabs.aurea.model.User
 
 class AuthRepository {
 
@@ -16,6 +17,16 @@ class AuthRepository {
             Log.e("API_LOGIN_ERROR", "Error al intentar iniciar sesión: ${e.message}", e)
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun register(user: User): Boolean {
+        return try {
+            RetrofitClient.service.registerUser(user)
+            true // Registro exitoso
+        } catch (e: Exception) {
+            android.util.Log.e("API_REGISTER_ERROR", "Error al registrar: ${e.message}")
+            false // Falló el registro
         }
     }
 }

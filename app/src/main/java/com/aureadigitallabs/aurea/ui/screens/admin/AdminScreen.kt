@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +28,7 @@ import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.R
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
+import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
 import com.aureadigitallabs.aurea.viewmodel.AdminViewModel
 
 @Composable
@@ -82,6 +86,7 @@ fun AdminScreen(navController: NavController) {
     )
     val products by viewModel.allProducts.collectAsState()
 
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -90,7 +95,6 @@ fun AdminScreen(navController: NavController) {
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
@@ -106,28 +110,39 @@ fun AdminScreen(navController: NavController) {
             }
         }
     ) { paddingValues ->
-        if (products.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Cargando productos...")
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-            ) {
-                items(products) { product ->
-                    AdminProductRow(
-                        product = product,
-                        onEdit = { selectedProduct ->
-                            navController.navigate("add_edit_product?productId=${selectedProduct.id}")
-                        },
-                        onDelete = { viewModel.deleteProduct(product) }
-                    )
+        // CAMBIO PRINCIPAL: Usamos una Column para apilar el botón y la lista
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+
+            Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+
+            // 2. LISTA DE PRODUCTOS (Lógica existente)
+            if (products.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Cargando productos o lista vacía...")
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp) // Quitamos el padding vertical del LazyColumn porque ya lo tiene la Column
+                ) {
+                    items(products) { product ->
+                        AdminProductRow(
+                            product = product,
+                            onEdit = { selectedProduct ->
+                                navController.navigate("add_edit_product?productId=${selectedProduct.id}")
+                            },
+                            onDelete = { viewModel.deleteProduct(product) }
+                        )
+                    }
                 }
             }
         }

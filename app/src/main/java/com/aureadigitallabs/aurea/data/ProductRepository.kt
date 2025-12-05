@@ -2,6 +2,7 @@ package com.aureadigitallabs.aurea.data
 
 import android.util.Log
 import com.aureadigitallabs.aurea.api.RetrofitClient
+import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -19,7 +20,6 @@ class ProductRepository(private val sessionManager: SessionManager) {
             emit(emptyList())
         }
     }
-
     fun getProductById(id: Long): Flow<Product?> = flow {
         try {
             val product = RetrofitClient.service.getProductById(id)
@@ -68,4 +68,30 @@ class ProductRepository(private val sessionManager: SessionManager) {
             }
         }
     }
+
+    fun getCategories(): Flow<List<Category>> = flow {
+        try {
+            val categories = RetrofitClient.service.getCategories()
+            emit(categories)
+        } catch (e: Exception) {
+            // Fallback por si la API falla: devolvemos una lista vacía o una por defecto
+            emit(emptyList())
+        }
+    }
+
+    // Crear
+    suspend fun createCategory(category: Category) {
+        try { RetrofitClient.service.createCategory(category) } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    // Editar
+    suspend fun updateCategory(category: Category) {
+        try { RetrofitClient.service.updateCategory(category.id, category) } catch (e: Exception) { e.printStackTrace() }
+    }
+
+    // Eliminar
+    suspend fun deleteCategory(id: Long) {
+        try { RetrofitClient.service.deleteCategory(id) } catch (e: Exception) { e.printStackTrace() }
+    }
+
 }

@@ -17,7 +17,7 @@ data class ProductUiState(
     var name: String = "",
     var price: String = "",
     var description: String = "",
-    var category: Category = Category.SKATE,
+    var category: Category? = null, // Puede ser nulo al inicio
     var imageName: String = "",
     val isEntryValid: Boolean = false
 )
@@ -30,7 +30,21 @@ class AddEditProductViewModel(
     var productUiState by mutableStateOf(ProductUiState())
         private set
 
+    // Lista para llenar el dropdown
+    var categoriesList by mutableStateOf<List<Category>>(emptyList())
+        private set
+
     init {
+        // Cargar categorías y preseleccionar la primera si es un producto nuevo
+        viewModelScope.launch {
+            repository.getCategories().collect {
+                categoriesList = it
+                if (productId == null && it.isNotEmpty() && productUiState.category == null) {
+                    productUiState = productUiState.copy(category = it.first())
+                }
+            }
+        }
+
         if (productId != null && productId > 0) {
             viewModelScope.launch {
                 repository.getProductById(productId).first()?.let { product ->
@@ -41,9 +55,7 @@ class AddEditProductViewModel(
     }
 
     fun updateUiState(newState: ProductUiState) {
-        productUiState = newState.copy(
-            isEntryValid = validateInput(newState)
-        )
+        productUiState = newState.copy(isEntryValid = validateInput(newState))
     }
 
     fun saveProduct() {
@@ -61,10 +73,9 @@ class AddEditProductViewModel(
 
     private fun validateInput(uiState: ProductUiState = productUiState): Boolean {
         return with(uiState) {
-            name.isNotBlank() && price.isNotBlank() && description.isNotBlank()
+            name.isNotBlank() && price.isNotBlank() && description.isNotBlank() && category != null
         }
     }
-
 
     companion object {
         fun Factory(repository: ProductRepository, productId: Long?): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
@@ -76,15 +87,13 @@ class AddEditProductViewModel(
     }
 }
 
-
-
 fun ProductUiState.toProduct(): Product = Product(
     id = id,
     name = name,
     price = price.toDoubleOrNull() ?: 0.0,
     description = description,
-    category = category,
-    imageName = if (imageName.isNotBlank()) imageName else category.name.lowercase()
+    category = category!!,
+    imageName = if (imageName.isNotBlank()) imageName else category?.iconName ?: "skate"
 )
 
 fun Product.toUiState(): ProductUiState = ProductUiState(

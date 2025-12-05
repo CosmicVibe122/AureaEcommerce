@@ -22,6 +22,9 @@ class LoginViewModel(private val authRepository: AuthRepository, private val ses
             val response = authRepository.login(LoginRequest(username.value, password.value))
             if (response != null) {
                 sessionManager.saveAuthToken(response.token)
+                sessionManager.saveUserId(response.user.id!!)
+                sessionManager.saveUsername(response.user.username)
+                sessionManager.saveUserRole(response.user.role.name)
                 loginResponse.value = response
                 errorMessage.value = null
             } else {

@@ -74,21 +74,18 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
 @Composable
 fun CatalogScreen(navController: NavController, categoryName: String?) {
     val application = LocalContext.current.applicationContext as AureaApplication
-    
-    // CORRECCIÓN: Usamos la Factory del ViewModel y el nuevo productRepository
+
     val viewModel: CatalogViewModel = viewModel(
         factory = CatalogViewModel.Factory(application.productRepository)
     )
 
     val allProducts by viewModel.allProducts.collectAsState(initial = emptyList())
-    val categories = remember { Category.values().toList() }
 
-    val initialCategory = remember(categoryName) {
-        if (categoryName == null || categoryName.isEmpty()) {
-            null
-        } else {
-            categories.find { it.name.equals(categoryName, ignoreCase = true) }
-        }
+    val categories by viewModel.categories.collectAsState(initial = emptyList())
+
+    val initialCategory = remember(categoryName, categories) {
+        if (categoryName.isNullOrEmpty()) null
+        else categories.find { it.name.equals(categoryName, ignoreCase = true) }
     }
 
     var selectedCategory by remember { mutableStateOf(initialCategory) }

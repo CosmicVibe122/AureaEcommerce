@@ -156,10 +156,8 @@ fun CartScreen(navController: NavController, cartViewModel: CartViewModel, role:
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = {
-                        cartViewModel.clearCart()
-                        navController.navigate("${NavRoutes.Home.route}/$role?showPurchaseMessage=true") {
-                            popUpTo(NavRoutes.Home.route) { inclusive = true }
-                        }
+                        // AHORA NAVEGAMOS AL CHECKOUT
+                        navController.navigate(NavRoutes.Checkout.route)
                     },
                     modifier = Modifier
                         .fillMaxWidth()

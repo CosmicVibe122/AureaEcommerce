@@ -7,13 +7,17 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.aureadigitallabs.aurea.ui.screens.admin.AddEditProductScreen
+import com.aureadigitallabs.aurea.ui.screens.admin.AdminDashboardScreen
 import com.aureadigitallabs.aurea.ui.screens.admin.AdminScreen
 import com.aureadigitallabs.aurea.ui.screens.cart.CartScreen
+import com.aureadigitallabs.aurea.ui.screens.cart.CheckoutScreen
+import com.aureadigitallabs.aurea.ui.screens.cart.OrderConfirmationScreen
 import com.aureadigitallabs.aurea.ui.screens.catalog.CatalogScreen
 import com.aureadigitallabs.aurea.ui.screens.catalog.ProductDetailScreen
 import com.aureadigitallabs.aurea.ui.screens.home.HomeScreen
 import com.aureadigitallabs.aurea.ui.screens.info.AboutScreen
 import com.aureadigitallabs.aurea.ui.screens.login.LoginScreen
+import com.aureadigitallabs.aurea.ui.screens.login.RegisterScreen
 import com.aureadigitallabs.aurea.viewmodel.CartViewModel
 
 @Composable
@@ -28,6 +32,10 @@ fun NavGraph(
 
         composable(NavRoutes.Login.route) {
             LoginScreen(navController)
+        }
+
+        composable(NavRoutes.Register.route) {
+            RegisterScreen(navController) // Asegúrate de importar tu RegisterScreen
         }
 
         composable(
@@ -87,9 +95,11 @@ fun NavGraph(
         }
 
         composable(NavRoutes.Admin.route) {
+            AdminDashboardScreen(navController)
+        }
+        composable(NavRoutes.AdminProducts.route) {
             AdminScreen(navController)
         }
-
         composable(
             route = "add_edit_product?productId={productId}",
             arguments = listOf(navArgument("productId") {
@@ -99,6 +109,35 @@ fun NavGraph(
         ) { backStackEntry ->
             val productId = backStackEntry.arguments?.getLong("productId")
             AddEditProductScreen(navController = navController, productId = if (productId == -1L) null else productId)
+        }
+
+        composable(NavRoutes.Checkout.route) {
+            CheckoutScreen(navController, cartViewModel)
+        }
+
+        composable(NavRoutes.OrderConfirmation.route) {
+            OrderConfirmationScreen(navController)
+        }
+        composable(NavRoutes.Profile.route) {
+            com.aureadigitallabs.aurea.ui.screens.profile.ProfileScreen(navController)
+        }
+        composable(NavRoutes.ProfileData.route) {
+            com.aureadigitallabs.aurea.ui.screens.profile.ProfileDataScreen(navController)
+        }
+        composable(NavRoutes.AdminOrders.route) {
+            com.aureadigitallabs.aurea.ui.screens.admin.AdminOrdersScreen(navController)
+        }
+        composable(NavRoutes.ClientOrders.route) {
+            com.aureadigitallabs.aurea.ui.screens.profile.ClientOrderScreen(navController)
+        }
+        composable(NavRoutes.AdminUsers.route) {
+            com.aureadigitallabs.aurea.ui.screens.admin.AdminUsersScreen(navController)
+        }
+        composable(NavRoutes.PaymentMethods.route) {
+            com.aureadigitallabs.aurea.ui.screens.profile.PaymentMethodsScreen(navController)
+        }
+        composable(NavRoutes.AdminCategories.route) {
+            com.aureadigitallabs.aurea.ui.screens.admin.AdminCategoryScreen(navController)
         }
     }
 }

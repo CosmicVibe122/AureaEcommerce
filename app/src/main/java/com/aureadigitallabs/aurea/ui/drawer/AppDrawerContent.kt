@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Store
 import androidx.compose.material3.Divider
@@ -73,6 +74,17 @@ fun AppDrawerContent(
                 icon = { Icon(Icons.AutoMirrored.Filled.HelpOutline, contentDescription = "Quiénes Somos") }
             )
 
+            Divider(modifier = Modifier.padding(vertical = 12.dp)) // Separador visual
+
+            NavigationDrawerItem(
+                label = { Text("Mi Perfil") },
+                selected = false,
+                onClick = {
+                    navController.navigate(NavRoutes.Profile.route)
+                    onMenuClick()
+                },
+                icon = { Icon(androidx.compose.material.icons.Icons.Default.Person, contentDescription = "Perfil") }
+            )
 
             if (role == "ADMIN") {
                 Divider(modifier = Modifier.padding(vertical = 12.dp))
