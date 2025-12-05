@@ -82,7 +82,8 @@ fun AdminDashboardScreen(navController: NavController) {
     val currencyFormat = NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply { maximumFractionDigits = 0 }
 
     Scaffold(
-        topBar = { AppTopBar("Dashboard Admin", navController, false) } // Sin flecha atrás porque es la home del admin
+        // CAMBIO AQUÍ: 'true' activa la flecha para volver atrás
+        topBar = { AppTopBar("Dashboard Admin", navController, true) }
     ) { padding ->
         Column(
             modifier = Modifier

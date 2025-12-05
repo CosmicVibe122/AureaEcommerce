@@ -27,8 +27,12 @@ class AdminCategoryViewModel(private val repository: ProductRepository) : ViewMo
     fun loadCategories() {
         viewModelScope.launch {
             isLoading = true
-            repository.getCategories().collect {
-                _categories.value = it
+            try {
+                repository.getCategories().collect {
+                    _categories.value = it
+                    isLoading = false
+                }
+            } catch (e: Exception) {
                 isLoading = false
             }
         }
@@ -38,27 +42,42 @@ class AdminCategoryViewModel(private val repository: ProductRepository) : ViewMo
         viewModelScope.launch {
             isLoading = true
             val newCategory = Category(id = id, name = name, iconName = iconName)
-            if (id == 0L) {
-                repository.createCategory(newCategory)
-            } else {
-                repository.updateCategory(newCategory)
+            try {
+                if (id == 0L) {
+                    repository.createCategory(newCategory)
+                } else {
+                    repository.updateCategory(newCategory)
+                }
+                loadCategories()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
             }
-            loadCategories() // Recargar lista
         }
     }
 
     fun deleteCategory(id: Long) {
         viewModelScope.launch {
             isLoading = true
-            repository.deleteCategory(id)
-            loadCategories()
+            try {
+                repository.deleteCategory(id)
+                loadCategories()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            } finally {
+                isLoading = false
+            }
         }
     }
 
-    class Factory(private val repository: ProductRepository) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return AdminCategoryViewModel(repository) as T
+    // CORRECCIÓN: Usar companion object para la Factory
+    companion object {
+        fun Factory(repository: ProductRepository): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AdminCategoryViewModel(repository) as T
+            }
         }
     }
 }

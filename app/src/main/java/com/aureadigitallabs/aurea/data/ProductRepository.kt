@@ -10,7 +10,6 @@ import kotlinx.coroutines.flow.flow
 
 class ProductRepository(private val sessionManager: SessionManager) {
 
-
     fun getAllProducts(): Flow<List<Product>> = flow {
         try {
             val products = RetrofitClient.service.getProducts()
@@ -20,6 +19,7 @@ class ProductRepository(private val sessionManager: SessionManager) {
             emit(emptyList())
         }
     }
+
     fun getProductById(id: Long): Flow<Product?> = flow {
         try {
             val product = RetrofitClient.service.getProductById(id)
@@ -29,12 +29,10 @@ class ProductRepository(private val sessionManager: SessionManager) {
         }
     }
 
-
     suspend fun insert(product: Product) {
         val token = sessionManager.getAuthToken().first()
         if (token != null) {
             try {
-                // RetrofitClient enviará el producto. La API ignorará el ID 0 y creará uno nuevo.
                 RetrofitClient.service.createProduct("Bearer $token", product)
                 Log.d("API_SUCCESS", "Producto creado: ${product.name}")
             } catch (e: Exception) {
@@ -42,7 +40,6 @@ class ProductRepository(private val sessionManager: SessionManager) {
             }
         }
     }
-
 
     suspend fun update(product: Product) {
         val token = sessionManager.getAuthToken().first()
@@ -55,7 +52,6 @@ class ProductRepository(private val sessionManager: SessionManager) {
             }
         }
     }
-
 
     suspend fun delete(product: Product) {
         val token = sessionManager.getAuthToken().first()
@@ -74,24 +70,46 @@ class ProductRepository(private val sessionManager: SessionManager) {
             val categories = RetrofitClient.service.getCategories()
             emit(categories)
         } catch (e: Exception) {
-            // Fallback por si la API falla: devolvemos una lista vacía o una por defecto
             emit(emptyList())
         }
     }
 
-    // Crear
+    // --- SECCIÓN CATEGORÍAS CORREGIDA ---
+    // Ahora obtenemos el token antes de llamar a la API
+
     suspend fun createCategory(category: Category) {
-        try { RetrofitClient.service.createCategory(category) } catch (e: Exception) { e.printStackTrace() }
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                // Pasamos el token Bearer
+                RetrofitClient.service.createCategory("Bearer $token", category)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        } else {
+            Log.e("REPO", "No hay token para crear categoría")
+        }
     }
 
-    // Editar
     suspend fun updateCategory(category: Category) {
-        try { RetrofitClient.service.updateCategory(category.id, category) } catch (e: Exception) { e.printStackTrace() }
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                RetrofitClient.service.updateCategory(category.id, "Bearer $token", category)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
-    // Eliminar
     suspend fun deleteCategory(id: Long) {
-        try { RetrofitClient.service.deleteCategory(id) } catch (e: Exception) { e.printStackTrace() }
+        val token = sessionManager.getAuthToken().first()
+        if (token != null) {
+            try {
+                RetrofitClient.service.deleteCategory(id, "Bearer $token")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
-
 }

@@ -35,7 +35,6 @@ fun CategoryDialog(
     var name by remember { mutableStateOf(category?.name ?: "") }
     var selectedIcon by remember { mutableStateOf(category?.iconName ?: "skate") }
 
-    // Lista de iconos disponibles (debes asegurarte que coincidan con tu CategoryUtils)
     val availableIcons = listOf("skate", "roller", "bmx")
 
     AlertDialog(
@@ -90,9 +89,12 @@ fun CategoryDialog(
 @Composable
 fun AdminCategoryScreen(navController: NavController) {
     val application = LocalContext.current.applicationContext as AureaApplication
+
+    // CORRECCIÓN: Llamada limpia a la Factory
     val viewModel: AdminCategoryViewModel = viewModel(
         factory = AdminCategoryViewModel.Factory(application.productRepository)
     )
+
     val categories by viewModel.categories.collectAsState()
 
     // Estado para controlar el diálogo

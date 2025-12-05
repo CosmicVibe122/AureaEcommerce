@@ -4,7 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.aureadigitallabs.aurea.api.RetrofitClient
 import com.aureadigitallabs.aurea.model.Order
@@ -18,7 +17,6 @@ class AdminOrderViewModel : ViewModel() {
     var isLoading by mutableStateOf(false)
         private set
 
-    // Cargar pedidos al iniciar
     init {
         loadOrders()
     }
@@ -27,10 +25,9 @@ class AdminOrderViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                // Llamamos al nuevo endpoint
                 orders = RetrofitClient.service.getAllOrders()
             } catch (e: Exception) {
-                e.printStackTrace() // Manejo básico de error
+                e.printStackTrace()
             } finally {
                 isLoading = false
             }
@@ -40,10 +37,17 @@ class AdminOrderViewModel : ViewModel() {
     fun updateStatus(orderId: Long, newStatus: String) {
         viewModelScope.launch {
             try {
-                RetrofitClient.service.updateOrderStatus(orderId, newStatus)
-                loadOrders() // Recargamos la lista para ver el cambio
+                // 1. Obtenemos la orden ya actualizada desde el servidor
+                val updatedOrder = RetrofitClient.service.updateOrderStatus(orderId, newStatus)
+
+                // 2. Reemplazamos exactamente esa orden en nuestra lista actual
+                // Esto fuerza a la UI a mostrar los datos nuevos (precio, estado, etc.)
+                orders = orders.map { currentOrder ->
+                    if (currentOrder.id == orderId) updatedOrder else currentOrder
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
+                loadOrders()
             }
         }
     }

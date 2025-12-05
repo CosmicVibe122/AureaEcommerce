@@ -17,7 +17,6 @@ interface ApiService {
     @POST("users/register")
     suspend fun registerUser(@Body user: User): User
 
-    // NUEVO: Obtener todos los usuarios (Admin)
     @GET("users")
     suspend fun getAllUsers(): List<User>
 
@@ -37,9 +36,29 @@ interface ApiService {
     @DELETE("products/{id}")
     suspend fun deleteProduct(@Path("id") id: Long, @Header("Authorization") token: String): retrofit2.Response<Unit>
 
-    // NUEVO: Categorías dinámicas
+    // --- CATEGORIAS (CORREGIDO) ---
     @GET("categories")
     suspend fun getCategories(): List<Category>
+
+    // AQUÍ ESTABA EL ERROR: Faltaba el token en estos 3 métodos
+    @POST("categories")
+    suspend fun createCategory(
+        @Header("Authorization") token: String,
+        @Body category: Category
+    ): Category
+
+    @PUT("categories/{id}")
+    suspend fun updateCategory(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String,
+        @Body category: Category
+    ): Category
+
+    @DELETE("categories/{id}")
+    suspend fun deleteCategory(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): retrofit2.Response<Unit>
 
     // --- PEDIDOS ---
     @POST("orders")
@@ -50,14 +69,4 @@ interface ApiService {
 
     @PUT("orders/{id}/status")
     suspend fun updateOrderStatus(@Path("id") id: Long, @Query("status") status: String): Order
-
-
-    @POST("categories")
-    suspend fun createCategory(@Body category: Category): Category
-
-    @PUT("categories/{id}")
-    suspend fun updateCategory(@Path("id") id: Long, @Body category: Category): Category
-
-    @DELETE("categories/{id}")
-    suspend fun deleteCategory(@Path("id") id: Long): retrofit2.Response<Unit>
 }

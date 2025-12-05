@@ -30,32 +30,39 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
     val orderState by cartViewModel.orderState.collectAsState()
     val application = context.applicationContext as AureaApplication
     val scope = rememberCoroutineScope()
+
     // Campos del formulario
     var address by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var paymentMethod by remember { mutableStateOf("Débito") }
 
+    // SOLUCIÓN: Estado local para bloqueo inmediato del botón
+    var isProcessing by remember { mutableStateOf(false) }
+
     val currencyFormat = remember { NumberFormat.getCurrencyInstance(Locale("es", "CL")).apply { maximumFractionDigits = 0 } }
 
     // Observar el estado de la orden para navegar al éxito
     LaunchedEffect(orderState) {
         if (orderState is OrderState.Success) {
+            isProcessing = false // Desbloquear al terminar (aunque navegamos fuera)
             navController.navigate(NavRoutes.OrderConfirmation.route) {
                 popUpTo(NavRoutes.Home.route)
             }
-            cartViewModel.resetOrderState() // Limpiar estado para futuras compras
+            cartViewModel.resetOrderState()
         } else if (orderState is OrderState.Error) {
+            isProcessing = false // Importante: Desbloquear si hubo error para permitir reintentar
             Toast.makeText(context, (orderState as OrderState.Error).message, Toast.LENGTH_LONG).show()
         }
     }
 
     LaunchedEffect(Unit) {
         application.sessionManager.getPaymentPreference().collect { savedPreference: String ->
-            paymentMethod = savedPreference
+            if (savedPreference.isNotEmpty()) {
+                paymentMethod = savedPreference
+            }
         }
     }
-
 
     Scaffold(
         topBar = { AppTopBar("Finalizar Compra", navController, true) }
@@ -103,24 +110,22 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
             Text("Método de Pago", style = MaterialTheme.typography.titleLarge)
 
             Column {
-                // Opción Débito
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .selectable(selected = (paymentMethod == "Débito"), onClick = { paymentMethod = "Débito" })
-                        .padding(vertical = 4.dp), // Padding interno pequeño
+                        .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(selected = (paymentMethod == "Débito"), onClick = { paymentMethod = "Débito" })
                     Text("Tarjeta de Débito", style = MaterialTheme.typography.bodyLarge)
                 }
 
-                // Opción Crédito
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .selectable(selected = (paymentMethod == "Crédito"), onClick = { paymentMethod = "Crédito" })
-                        .padding(vertical = 4.dp), // Padding interno pequeño
+                        .padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(selected = (paymentMethod == "Crédito"), onClick = { paymentMethod = "Crédito" })
@@ -129,22 +134,28 @@ fun CheckoutScreen(navController: NavController, cartViewModel: CartViewModel) {
             }
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
+
             Button(
                 onClick = {
                     if (address.isNotEmpty() && city.isNotEmpty()) {
-                        cartViewModel.createOrder()
+                        // 1. Bloqueo inmediato
+                        isProcessing = true
+
                         scope.launch {
+                            // 2. Operación asíncrona
                             application.sessionManager.savePaymentPreference(paymentMethod)
-                            cartViewModel.createOrder() // Tu función existente
+                            // 3. Llamada a la API
+                            cartViewModel.createOrder()
                         }
                     } else {
                         Toast.makeText(context, "Por favor complete la dirección", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                enabled = orderState !is OrderState.Loading
+                // El botón se deshabilita si estamos procesando localmente O si el ViewModel está cargando
+                enabled = !isProcessing && orderState !is OrderState.Loading
             ) {
-                if (orderState is OrderState.Loading) {
+                if (isProcessing || orderState is OrderState.Loading) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
                     Text("Confirmar y Pagar")
