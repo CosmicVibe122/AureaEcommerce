@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -209,83 +210,121 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    ImageCarousel()
-                }
-
-                Text(
-                    "Categorías",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
-                )
-
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                LazyColumn(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(categories) { category ->
-                        CategoryButton(
-                            category = category,
-                            icon = getCategoryIcon(category.iconName) // Usamos el helper
+                    item {
+                        Box(modifier = Modifier.padding(16.dp)) {
+                            ImageCarousel()
+                        }
+                    }
+
+                    item {
+                        Text(
+                            "Categorías",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
+                        )
+                    }
+
+                    // Reemplazamos LazyVerticalGrid con una implementación dentro de LazyColumn
+                    items(categories.chunked(3)) { rowCategories ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp),
+                            horizontalArrangement = Arrangement.Center
                         ) {
-                            navController.navigate("${NavRoutes.Catalog.route}?category=${category.name}")
+                            rowCategories.forEach { category ->
+                                Box(modifier = Modifier.weight(1f)) {
+                                    CategoryButton(
+                                        category = category,
+                                        icon = getCategoryIcon(category.iconName)
+                                    ) {
+                                        navController.navigate("${NavRoutes.Catalog.route}?category=${category.name}")
+                                    }
+                                }
+                            }
+                            // Rellenar con spacers si la fila no está completa
+                            repeat(3 - rowCategories.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
                         }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    item {
+                        Text(
+                            "Productos Destacados",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+
+                    item {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 8.dp),
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            items(allProducts.take(4)) { product ->
+                                FeaturedProductCard(product = product) {
+                                    navController.navigate("productDetail/${product.id}")
+                                }
+                            }
+                        }
+                    }
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp)) // Espacio al final del scroll
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Productos Destacados",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-
-                LazyRow(
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    modifier = Modifier.padding(top = 8.dp)
-                ) {
-                    items(allProducts.take(4)) { product ->
-                        FeaturedProductCard(product = product) {
-                            navController.navigate("productDetail/${product.id}")
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.weight(1f))
+                // Botones fijos en la parte inferior
                 Divider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
 
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    OutlinedButton(onClick = { navController.navigate("${NavRoutes.Catalog.route}?category=") }) {
-                        Icon(Icons.Default.Store, contentDescription = "Catálogo")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Catálogo")
-                    }
-                    Button(onClick = { navController.navigate("${NavRoutes.Cart.route}?role=${role ?: "user"}") }) {
-                        Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Carrito")
-                    }
-                }
-                OutlinedButton(
-                    onClick = {
-                        navController.navigate(NavRoutes.Login.route) {
-                            popUpTo(0) { inclusive = true }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { navController.navigate("${NavRoutes.Catalog.route}?category=") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.Store, contentDescription = "Catálogo")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Catálogo")
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Cerrar Sesión")
+                        OutlinedButton(
+                            onClick = { navController.navigate("${NavRoutes.Cart.route}?role=${role ?: "user"}") },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Carrito")
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            navController.navigate(NavRoutes.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar Sesión")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Cerrar Sesión")
+                    }
                 }
             }
         }
