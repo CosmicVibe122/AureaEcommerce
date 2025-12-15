@@ -90,14 +90,12 @@ fun CategoryDialog(
 fun AdminCategoryScreen(navController: NavController) {
     val application = LocalContext.current.applicationContext as AureaApplication
 
-    // CORRECCIÓN: Llamada limpia a la Factory
     val viewModel: AdminCategoryViewModel = viewModel(
         factory = AdminCategoryViewModel.Factory(application.productRepository)
     )
 
     val categories by viewModel.categories.collectAsState()
 
-    // Estado para controlar el diálogo
     var showDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
 
@@ -116,7 +114,7 @@ fun AdminCategoryScreen(navController: NavController) {
         topBar = { AppTopBar("Gestionar Categorías", navController, true) },
         floatingActionButton = {
             FloatingActionButton(onClick = {
-                selectedCategory = null // Modo crear
+                selectedCategory = null
                 showDialog = true
             }) {
                 Icon(Icons.Default.Add, contentDescription = "Agregar")
@@ -150,7 +148,11 @@ fun AdminCategoryScreen(navController: NavController) {
                                 showDialog = true
                             }) { Icon(Icons.Default.Edit, "Editar") }
 
-                            IconButton(onClick = { viewModel.deleteCategory(category.id) }) {
+                            // --- CORRECCIÓN AQUÍ ---
+                            IconButton(onClick = {
+                                // Usamos 'let' para ejecutar delete solo si el id NO es nulo
+                                category.id?.let { id -> viewModel.deleteCategory(id) }
+                            }) {
                                 Icon(Icons.Default.Delete, "Eliminar", tint = MaterialTheme.colorScheme.error)
                             }
                         }

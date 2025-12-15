@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.AureaApplication
+import com.aureadigitallabs.aurea.model.Category // <--- IMPORTANTE: Asegúrate de tener este import
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.AddEditProductViewModel
 import com.aureadigitallabs.aurea.viewmodel.ProductUiState
@@ -33,10 +34,8 @@ import com.aureadigitallabs.aurea.viewmodel.ProductUiState
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditProductScreen(navController: NavController, productId: Long?) {
-    // 1. Obtenemos la instancia de la Application
     val application = LocalContext.current.applicationContext as AureaApplication
 
-    // 2. Usamos la Factory con la nueva propiedad 'productRepository'
     val viewModel: AddEditProductViewModel = viewModel(
         factory = AddEditProductViewModel.Factory(application.productRepository, productId)
     )
@@ -52,6 +51,7 @@ fun AddEditProductScreen(navController: NavController, productId: Long?) {
     ) { paddingValues ->
         ProductForm(
             productUiState = viewModel.productUiState,
+            categories = viewModel.categoriesList, // <--- PASAMOS LA LISTA DEL VIEWMODEL
             onStateChange = viewModel::updateUiState,
             onSaveClick = {
                 viewModel.saveProduct()
@@ -66,6 +66,7 @@ fun AddEditProductScreen(navController: NavController, productId: Long?) {
 @Composable
 fun ProductForm(
     productUiState: ProductUiState,
+    categories: List<Category>, // <--- RECIBIMOS LA LISTA AQUÍ
     onStateChange: (ProductUiState) -> Unit,
     onSaveClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -101,14 +102,14 @@ fun ProductForm(
             minLines = 3
         )
 
+        // --- DROPDOWN CORREGIDO ---
         var expanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
         ) {
             OutlinedTextField(
-                // Manejo seguro por si category es null
-                value = productUiState.category?.name ?: "Seleccione...",
+                value = productUiState.category?.name ?: "Seleccione Categoría",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Categoría") },
@@ -119,7 +120,17 @@ fun ProductForm(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-
+                // AQUÍ ITERAMOS LAS CATEGORÍAS
+                categories.forEach { category ->
+                    DropdownMenuItem(
+                        text = { Text(text = category.name) },
+                        onClick = {
+                            // Actualizamos el estado con la categoría seleccionada
+                            onStateChange(productUiState.copy(category = category))
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
 

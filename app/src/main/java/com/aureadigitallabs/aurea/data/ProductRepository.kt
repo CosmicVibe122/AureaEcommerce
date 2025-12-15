@@ -5,28 +5,28 @@ import com.aureadigitallabs.aurea.api.RetrofitClient
 import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 
 class ProductRepository(private val sessionManager: SessionManager) {
 
+    // SOLUCIÓN 1: Usamos .catch {} FUERA del flow para evitar el crash "Flow exception transparency"
     fun getAllProducts(): Flow<List<Product>> = flow {
-        try {
-            val products = RetrofitClient.service.getProducts()
-            emit(products)
-        } catch (e: Exception) {
-            Log.e("API_ERROR", "Error al obtener productos", e)
-            emit(emptyList())
-        }
+        val products = RetrofitClient.service.getProducts()
+        emit(products)
+    }.catch { e ->
+        Log.e("API_ERROR", "Error al obtener productos", e)
+        emit(emptyList())
     }
 
+    // SOLUCIÓN 2: Manejo seguro de nulos. Si la API falla, emitimos null sin crashear.
     fun getProductById(id: Long): Flow<Product?> = flow {
-        try {
-            val product = RetrofitClient.service.getProductById(id)
-            emit(product)
-        } catch (e: Exception) {
-            emit(null)
-        }
+        val product = RetrofitClient.service.getProductById(id)
+        emit(product)
+    }.catch { e ->
+        Log.e("API_ERROR", "Error al obtener producto $id: ${e.message}")
+        emit(null)
     }
 
     suspend fun insert(product: Product) {
@@ -42,6 +42,7 @@ class ProductRepository(private val sessionManager: SessionManager) {
     }
 
     suspend fun update(product: Product) {
+        // Asumimos que product.id no es nulo, o usamos ?.let si fuera necesario
         val token = sessionManager.getAuthToken().first()
         if (token != null) {
             try {
@@ -65,23 +66,19 @@ class ProductRepository(private val sessionManager: SessionManager) {
         }
     }
 
+    // Categorías con .catch seguro
     fun getCategories(): Flow<List<Category>> = flow {
-        try {
-            val categories = RetrofitClient.service.getCategories()
-            emit(categories)
-        } catch (e: Exception) {
-            emit(emptyList())
-        }
+        val categories = RetrofitClient.service.getCategories()
+        emit(categories)
+    }.catch { e ->
+        Log.e("API_ERROR", "Error al obtener categorías", e)
+        emit(emptyList())
     }
-
-    // --- SECCIÓN CATEGORÍAS CORREGIDA ---
-    // Ahora obtenemos el token antes de llamar a la API
 
     suspend fun createCategory(category: Category) {
         val token = sessionManager.getAuthToken().first()
         if (token != null) {
             try {
-                // Pasamos el token Bearer
                 RetrofitClient.service.createCategory("Bearer $token", category)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -91,9 +88,11 @@ class ProductRepository(private val sessionManager: SessionManager) {
         }
     }
 
+    // SOLUCIÓN 3: Verificación segura de ID nulo (por si Category.id es nullable)
     suspend fun updateCategory(category: Category) {
         val token = sessionManager.getAuthToken().first()
-        if (token != null) {
+        // Verificamos que el ID exista antes de intentar actualizar
+        if (token != null && category.id != null) {
             try {
                 RetrofitClient.service.updateCategory(category.id, "Bearer $token", category)
             } catch (e: Exception) {

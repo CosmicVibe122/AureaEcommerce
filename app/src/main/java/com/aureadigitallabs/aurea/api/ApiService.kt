@@ -11,62 +11,56 @@ import retrofit2.http.*
 
 interface ApiService {
     // --- AUTH ---
-    @POST("login")
+    @POST("api/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
-    @POST("users/register")
+    @POST("api/users/register")
     suspend fun registerUser(@Body user: User): User
 
-    @GET("users")
-    suspend fun getAllUsers(): List<User>
+    @GET("api/users/all")
+    suspend fun getAllUsers(@Header("Authorization") token: String): List<User>
 
     // --- PRODUCTOS ---
-    @GET("products")
+    @GET("api/products")
     suspend fun getProducts(): List<Product>
 
-    @GET("products/{id}")
-    suspend fun getProductById(@Path("id") id: Long): Product
+    @GET("api/products/{id}")
+    suspend fun getProductById(@Path("id") id: Long): Product?
 
-    @POST("products")
+    @POST("api/products")
     suspend fun createProduct(@Header("Authorization") token: String, @Body product: Product): Product
 
-    @PUT("products/{id}")
+    @PUT("api/products/{id}")
     suspend fun updateProduct(@Path("id") id: Long, @Header("Authorization") token: String, @Body product: Product): Product
 
-    @DELETE("products/{id}")
+    @DELETE("api/products/{id}")
     suspend fun deleteProduct(@Path("id") id: Long, @Header("Authorization") token: String): retrofit2.Response<Unit>
 
-    // --- CATEGORIAS (CORREGIDO) ---
-    @GET("categories")
+    // --- CATEGORIAS ---
+    @GET("api/categories")
     suspend fun getCategories(): List<Category>
 
-    // AQUÍ ESTABA EL ERROR: Faltaba el token en estos 3 métodos
-    @POST("categories")
-    suspend fun createCategory(
-        @Header("Authorization") token: String,
-        @Body category: Category
-    ): Category
+    @POST("api/categories")
+    suspend fun createCategory(@Header("Authorization") token: String, @Body category: Category): Category
 
-    @PUT("categories/{id}")
-    suspend fun updateCategory(
-        @Path("id") id: Long,
-        @Header("Authorization") token: String,
-        @Body category: Category
-    ): Category
+    @PUT("api/categories/{id}")
+    suspend fun updateCategory(@Path("id") id: Long, @Header("Authorization") token: String, @Body category: Category): Category
 
-    @DELETE("categories/{id}")
-    suspend fun deleteCategory(
-        @Path("id") id: Long,
-        @Header("Authorization") token: String
-    ): retrofit2.Response<Unit>
+    @DELETE("api/categories/{id}")
+    suspend fun deleteCategory(@Path("id") id: Long, @Header("Authorization") token: String): retrofit2.Response<Unit>
 
     // --- PEDIDOS ---
-    @POST("orders")
+    @POST("api/orders")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Order
 
-    @GET("orders")
-    suspend fun getAllOrders(): List<Order>
 
-    @PUT("orders/{id}/status")
+    @GET("api/orders")
+    suspend fun getAllOrders(@Header("Authorization") token: String): List<Order>
+
+    @PUT("api/orders/{id}/status")
     suspend fun updateOrderStatus(@Path("id") id: Long, @Query("status") status: String): Order
+
+    // -- USUARIOS --
+    @PUT("api/users/{id}")
+    suspend fun updateUser(@Path("id") id: Long, @Header("Authorization") token: String, @Body user: User): User
 }

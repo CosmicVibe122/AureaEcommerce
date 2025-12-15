@@ -41,7 +41,9 @@ class AdminCategoryViewModel(private val repository: ProductRepository) : ViewMo
     fun saveCategory(id: Long, name: String, iconName: String) {
         viewModelScope.launch {
             isLoading = true
-            val newCategory = Category(id = id, name = name, iconName = iconName)
+            val categoryId = if (id == 0L) null else id
+
+            val newCategory = Category(id = categoryId, name = name, iconName = iconName)
             try {
                 if (id == 0L) {
                     repository.createCategory(newCategory)

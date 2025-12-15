@@ -6,7 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.251.69.148:8080/api/"
+    private const val BASE_URL = "https://aurea-api-production-c571.up.railway.app/"
 
     // Se crea el interceptor de logging
     private val loggingInterceptor = HttpLoggingInterceptor().apply {

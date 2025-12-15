@@ -12,10 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.aureadigitallabs.aurea.data.SessionManager
 import com.aureadigitallabs.aurea.model.Order
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.AdminOrderViewModel
@@ -81,7 +83,11 @@ fun OrderCard(order: Order, onStatusChange: (String) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminOrdersScreen(navController: NavController) {
-    val viewModel: AdminOrderViewModel = viewModel() // No necesita factory complejo por ahora
+    val context = LocalContext.current
+    val sessionManager = remember { SessionManager(context) }
+    val viewModel: AdminOrderViewModel = viewModel(
+        factory = AdminOrderViewModel.Factory(sessionManager)
+    )
     val orders = viewModel.orders
 
     Scaffold(
