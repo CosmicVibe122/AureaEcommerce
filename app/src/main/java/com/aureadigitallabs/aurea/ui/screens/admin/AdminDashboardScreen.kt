@@ -32,6 +32,7 @@ import com.aureadigitallabs.aurea.ui.navigation.NavRoutes
 import com.aureadigitallabs.aurea.viewmodel.AdminDashboardViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.material.icons.filled.Star
 
 @Composable
 fun StatCard(
@@ -149,6 +150,13 @@ fun AdminDashboardScreen(navController: NavController, context: Context = LocalC
                             modifier = Modifier.weight(1f)
                         )
                     }
+                    StatCard(
+                        title = "Producto Más Vendido",
+                        value = stats.topProductName, // Usamos el nombre del producto
+                        icon = Icons.Default.Star, // Nuevo icono para destacar
+                        color = Color(0xFF2196F3), // Azul
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     StatCard(
                         title = "Productos Activos",

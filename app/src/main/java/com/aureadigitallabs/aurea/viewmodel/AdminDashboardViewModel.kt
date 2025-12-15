@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 data class DashboardStats(
     val totalSales: Double = 0.0,
     val pendingOrdersCount: Int = 0,
-    val activeProductsCount: Int = 0
+    val activeProductsCount: Int = 0,
+    val topProductName: String = "N/A" // Nuevo campo
 )
 
 class AdminDashboardViewModel(private val sessionManager: SessionManager) : ViewModel() {
@@ -47,11 +48,27 @@ class AdminDashboardViewModel(private val sessionManager: SessionManager) : View
 
                 val orders = RetrofitClient.service.getAllOrders(authHeader)
                 val products = RetrofitClient.service.getProducts()
-                val totalSales = orders.filter { it.status == "COMPLETED" }.sumOf { it.total }
+                val completedOrders = orders.filter { it.status == "COMPLETED" }
+                val totalSales = completedOrders.sumOf { it.total }
                 val pendingOrders = orders.count { it.status == "PENDING" }
                 val productCount = products.size
 
-                stats = DashboardStats(totalSales, pendingOrders, productCount)
+                val topProduct = completedOrders
+                    .flatMap { it.items } // Obtener todos los items de todas las órdenes
+                    .groupBy { it.product.id } // Agrupar por ID de producto
+                    .mapValues { entry -> entry.value.sumOf { it.quantity } } // Sumar la cantidad vendida
+                    .maxByOrNull { it.value } // Encontrar el que tiene la mayor cantidad
+
+                val topProductId = topProduct?.key
+
+                val topProductName = if (topProductId != null) {
+                    // Buscar el nombre en la lista de productos
+                    products.firstOrNull { it.id == topProductId }?.name ?: "Desconocido"
+                } else {
+                    "Sin ventas"
+                }
+
+                stats = DashboardStats(totalSales, pendingOrders, productCount, topProductName)
 
             } catch (e: Exception) {
                 e.printStackTrace()
