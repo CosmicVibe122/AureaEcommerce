@@ -40,7 +40,7 @@ La aplicación cuenta con gestión de roles (Cliente y Administrador) y las sigu
 La aplicación se conecta a una API REST desarrollada en Spring Boot (Java 21) alojada localmente para desarrollo o en la nube.
 * **Repositorio API:** <a href="https://github.com/Pablitttoo/aurea-api"> aurea-api </a> 
 * **Base de Datos:** PostgreSQL (Supabase).
-* **URL Base en Android:** `http://10.0.2.2:8080/api/` (Loopback para emulador Android).
+* **URL Base en Android:** `https://aurea-api-production-c571.up.railway.app/`
 
 ### Endpoints Utilizados
 La comunicación se realiza mediante **Retrofit**.
@@ -66,8 +66,7 @@ La comunicación se realiza mediante **Retrofit**.
 ### Instrucciones
 1.  **Clonar/Abrir:** Abrir la carpeta `AureaEcommerce` en Android Studio.
 2.  **Sincronizar:** Permitir que Gradle descargue las dependencias (Retrofit, Coil, Room, Compose, etc.).
-3.  **Configurar IP (Opcional):** Si usas un dispositivo físico en lugar del emulador, cambia la `BASE_URL` en `RetrofitClient.kt` por la IP local de tu PC (ej: `192.168.1.X`).
-4.  **Ejecutar:** Presionar el botón "Run" (Shift+F10) seleccionando un emulador o dispositivo conectado.
+3.  **Ejecutar:** Presionar el botón "Run" (Shift+F10) seleccionando un emulador o dispositivo conectado.
 
 ---
 
