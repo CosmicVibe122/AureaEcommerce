@@ -29,6 +29,10 @@ import com.aureadigitallabs.aurea.viewmodel.ProductDetailViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+
+
 
 @Composable
 fun ProductDetailScreen(
@@ -46,10 +50,21 @@ fun ProductDetailScreen(
 
     val product by viewModel.product.collectAsState(initial = null)
 
-    val imageResId = remember(product) {
-        product?.let {
-            context.resources.getIdentifier(it.imageName, "drawable", context.packageName)
-        } ?: 0
+    val imageModel: Any? = remember(product) {
+        product?.let { p ->
+            val isUrl = p.imageName.startsWith("http", ignoreCase = true)
+            if (isUrl) {
+                p.imageName // Si es URL, la usamos directamente
+            } else {
+                // Si no es URL, intentamos resolver el ID de recurso local (comportamiento actual)
+                val resId = context.resources.getIdentifier(
+                    p.imageName,
+                    "drawable",
+                    context.packageName
+                )
+                if (resId != 0) resId else p.imageName // Usamos el ID si se encuentra, o la cadena original
+            }
+        }
     }
 
     val currencyFormat = remember {
@@ -94,9 +109,14 @@ fun ProductDetailScreen(
                         .height(300.dp),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
-                    Image(
-                        painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageModel) // Usa la URL o el ID de recurso
+                            .crossfade(true)
+                            .build(),
                         contentDescription = product!!.name,
+                        placeholder = painterResource(id = R.drawable.aurealogo), // Imagen de carga
+                        error = painterResource(id = R.drawable.aurealogo), // Imagen por defecto si falla la URL o el ID no se resolvió
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )

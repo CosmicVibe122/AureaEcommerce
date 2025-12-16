@@ -20,12 +20,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.aureadigitallabs.aurea.AureaApplication
 import com.aureadigitallabs.aurea.R
-import com.aureadigitallabs.aurea.model.Category
 import com.aureadigitallabs.aurea.model.Product
 import com.aureadigitallabs.aurea.ui.common.AppTopBar
 import com.aureadigitallabs.aurea.viewmodel.CatalogViewModel
 import java.text.NumberFormat
 import java.util.Locale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 @Composable
 fun ProductCard(product: Product, onClick: () -> Unit) {
@@ -36,8 +37,20 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
     }
 
     val context = LocalContext.current
-    val imageResId = remember(product.imageName) {
-        context.resources.getIdentifier(product.imageName, "drawable", context.packageName)
+    val imageModel: Any = remember(product.imageName) {
+        val isUrl = product.imageName.startsWith("http", ignoreCase = true)
+        if (isUrl) {
+            product.imageName // Si es URL, la usamos directamente
+        } else {
+            // Si no es URL, intentamos resolver el ID de recurso local
+            val resId = context.resources.getIdentifier(
+                product.imageName,
+                "drawable",
+                context.packageName
+            )
+            // Usamos el ID si se encuentra, o la cadena original si no se encuentra
+            if (resId != 0) resId else product.imageName
+        }
     }
 
     Card(
@@ -51,9 +64,14 @@ fun ProductCard(product: Product, onClick: () -> Unit) {
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = if (imageResId != 0) painterResource(id = imageResId) else painterResource(id = R.drawable.aurealogo),
+            AsyncImage(
+                model = ImageRequest.Builder(context)
+                    .data(imageModel) // Usa la URL o el ID de recurso
+                    .crossfade(true)
+                    .build(),
                 contentDescription = product.name,
+                placeholder = painterResource(id = R.drawable.aurealogo), // Imagen de carga
+                error = painterResource(id = R.drawable.aurealogo), // Imagen por defecto si falla la URL o el ID no se resolvió
                 modifier = Modifier
                     .size(80.dp)
                     .padding(end = 16.dp),

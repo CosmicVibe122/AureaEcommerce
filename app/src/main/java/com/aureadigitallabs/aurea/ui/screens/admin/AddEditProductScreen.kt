@@ -102,7 +102,14 @@ fun ProductForm(
             minLines = 3
         )
 
-        // --- DROPDOWN CORREGIDO ---
+        OutlinedTextField(
+            value = productUiState.imageName,
+            onValueChange = { onStateChange(productUiState.copy(imageName = it)) },
+            label = { Text("URL de la Imagen (Opcional)") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
         var expanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = expanded,
